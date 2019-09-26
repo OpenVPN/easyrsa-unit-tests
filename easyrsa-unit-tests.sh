@@ -92,6 +92,22 @@ init ()
 # Wrapper around printf - clobber print since it's not POSIX anyway
 print() { printf "%s\n" "$1"; }
 
+warn ()
+{
+	print "|| >> $1"
+}
+
+die ()
+{
+	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
+	[ $((DIE)) -eq 1 ] && tear_down && exit 1
+	warn "Ignored"
+	S_ERRORS=$((S_ERRORS + 1))
+	T_ERRORS=$((T_ERRORS + 1))
+	warn "$STAGE_NAME Errors: $S_ERRORS"
+	return 0
+}
+
 newline ()
 {
 	[ $((VVERBOSE + SHOW_CERT_ONLY)) -eq 0 ] && return 0
@@ -117,33 +133,11 @@ completed ()
 	print "$MSG .. ok"
 }
 
-warn ()
-{
-	print "|| >> $1"
-}
-
-die ()
-{
-	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
-	[ $((DIE)) -eq 1 ] && tear_down && exit 1
-	warn "Ignored"
-	S_ERRORS=$((S_ERRORS + 1))
-	T_ERRORS=$((T_ERRORS + 1))
-	warn "$STAGE_NAME Errors: $S_ERRORS"
-	return 0
-}
-
 vverbose ()
 {
 	[ $((VVERBOSE)) -eq 1 ] || return 0
 	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
 	print "|| :: $MSG"
-}
-
-vvverbose ()
-{
-	[ $((VVERBOSE)) -eq 1 ] || return 0
-	print "|| :: $1"
 }
 
 vdisabled ()
@@ -157,6 +151,12 @@ vcompleted ()
 	[ $((VVERBOSE)) -eq 1 ] || return 0
 	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
 	print "|| ++ $MSG .. ok"
+}
+
+vvverbose ()
+{
+	[ $((VVERBOSE)) -eq 1 ] || return 0
+	print "|| :: $1"
 }
 
 verb_on ()
