@@ -437,6 +437,7 @@ show_cert ()
 
 renew_cert ()
 {
+	wait_sec
 	newline 1
 	STEP_NAME="renew $REQ_name nopass"
 	action
@@ -497,7 +498,6 @@ create_pki ()
 	REQ_name="s01"
 	build_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -506,7 +506,6 @@ create_pki ()
 	REQ_name="s02"
 	build_san_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -515,7 +514,6 @@ create_pki ()
 	REQ_name="s03"
 	build_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -524,7 +522,6 @@ create_pki ()
 	REQ_name="s04"
 	build_san_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -533,7 +530,6 @@ create_pki ()
 	REQ_name="c01"
 	build_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
