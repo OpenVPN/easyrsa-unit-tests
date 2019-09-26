@@ -36,7 +36,7 @@ init ()
 {
 	ROOT_DIR="$(pwd)"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
-	TEMP_DIR="$WORK_DIR/temp"
+	TEMP_DIR="$WORK_DIR/unit-tests-temp"
 	IGNORE_TEMP=$((IGNORE_TEMP))
 
 	if [ -d "$TEMP_DIR" ] && [ $IGNORE_TEMP -eq 0 ]
@@ -76,6 +76,17 @@ init ()
 	export LIBRESSL_BUILD="${LIBRESSL_BUILD:-0}"
 	export LIBRESSL_VERSION="${LIBRESSL_VERSION:-2.8.3}"
 	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
+
+	# Register cleanup on EXIT
+	trap "tear_down" EXIT
+	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
+	# explicitly exit to signal EXIT (non-bash shells)
+	trap "exit 1" 1
+	trap "exit 2" 2
+	trap "exit 3" 3
+	trap "exit 6" 6
+	trap "exit 14" 15
+
 }
 
 # Wrapper around printf - clobber print since it's not POSIX anyway
@@ -113,7 +124,7 @@ warn ()
 
 die ()
 {
-	warn "$0 FATAL ERROR! exit 1: $1"
+	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
 	[ $((DIE)) -eq 1 ] && tear_down && exit 1
 	warn "Ignored"
 	S_ERRORS=$((S_ERRORS + 1))
@@ -605,7 +616,7 @@ create_pki ()
 
 ######################################
 
-	for i in $1
+	for i in $@
 	do
 		case $i in
 		-u|-h|--help)	usage ;;
@@ -638,6 +649,7 @@ create_pki ()
 		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
 		NEW_PKI="pki-sys-ssl"
 		create_pki
+		unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
