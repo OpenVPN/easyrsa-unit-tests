@@ -698,6 +698,7 @@ create_pki ()
 
 	tear_down
 
-completed "Completed (Total errors: $T_ERRORS)"
-vcompleted "Completed (Total errors: $T_ERRORS)"
+completed "Completed $(date) (Total errors: $T_ERRORS)"
+vcompleted "Completed $(date) (Total errors: $T_ERRORS)"
+
 exit 0
