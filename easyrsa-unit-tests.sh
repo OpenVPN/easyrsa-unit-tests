@@ -25,7 +25,7 @@ cat << __EOF__
 	* subca sign serverClient [heartbleed]
 	* subca sign serverClient with SAN [VORACLE]
 	* subca sign client [meltdown]
-	* delete all keys andrevoke all certs on the fly
+	* delete all keys and revoke all certs on the fly
 	* generate various CRLs
 
 __EOF__
@@ -37,14 +37,14 @@ init ()
 	ROOT_DIR="$(pwd)"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
 	TEMP_DIR="$WORK_DIR/unit-tests-temp"
-	IGNORE_TEMP=$((IGNORE_TEMP))
+	IGNORE_TEMP=${IGNORE_TEMP:-0}
 
 	if [ -d "$TEMP_DIR" ] && [ $IGNORE_TEMP -eq 0 ]
 	then
 		print "Aborted! Temporary directory exists: $TEMP_DIR"
 		exit 1
 	else
-		[ $IGNORE_TEMP -eq 1 ] && rm -rf "$TEMP_DIR" && print "NOTICE: Deleted $TEMP_DIR"
+		[ $IGNORE_TEMP -eq 1 ] && rm -rf "$TEMP_DIR" && warn "*** Deleted $TEMP_DIR ***"
 	fi
 
 	DIE="${DIE:-1}"
@@ -78,7 +78,7 @@ init ()
 	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
 
 	# Register cleanup on EXIT
-	trap "tear_down" EXIT
+	trap "cleanup" EXIT
 	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
 	# explicitly exit to signal EXIT (non-bash shells)
 	trap "exit 1" 1
@@ -100,7 +100,7 @@ warn ()
 die ()
 {
 	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
-	[ $((DIE)) -eq 1 ] && tear_down && exit 1
+	[ $((DIE)) -eq 1 ] && cleanup && exit 1
 	warn "Ignored"
 	S_ERRORS=$((S_ERRORS + 1))
 	T_ERRORS=$((T_ERRORS + 1))
@@ -234,11 +234,13 @@ setup ()
 
 destroy_data ()
 {
-	[ $((SAVE_PKI)) -ne 1 ] && rm -rf "$TEMP_DIR"
-	rm -f "$WORK_DIR/vars"
-	if [ -f "$YACF.orig" ]
+	if [ $((SAVE_PKI)) -ne 1 ]
 	then
-		mv -f "$YACF.orig" "$YACF"
+		rm -rf "$TEMP_DIR"
+		rm -f "$WORK_DIR/vars"
+		if [ -f "$YACF.orig" ]; then mv -f "$YACF.orig" "$YACF"; fi
+	else
+		warn "*** PKI and vars have not been deleted ***"
 	fi
 }
 
@@ -247,7 +249,7 @@ secure_key ()
 	rm -f "$EASYRSA_PKI/private/$REQ_name.key"
 }
 
-tear_down ()
+cleanup ()
 {
 	destroy_data
 	cd ..
@@ -696,7 +698,7 @@ create_pki ()
 		vdisabled "$STAGE_NAME"
 	fi
 
-	tear_down
+	cleanup
 
 completed "Completed $(date) (Total errors: $T_ERRORS)"
 vcompleted "Completed $(date) (Total errors: $T_ERRORS)"
