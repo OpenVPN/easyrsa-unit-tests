@@ -121,9 +121,8 @@ newline ()
 
 verbose ()
 {
-	# currently not used
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	print "$1 .. ok"
+	print "$1"
 }
 
 completed ()
@@ -174,6 +173,26 @@ verb_off ()
 	VVERBOSE=0
 	SAVE_EOUT="$ERSA_OUT"
 	ERSA_OUT=0
+}
+
+version ()
+{
+	newline 1
+	ERSA_UTEST_VERSION="1.0"
+	verbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
+	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
+
+	ERSA_UTEST_GIT_VERSION="$(git --version 2>&1)"
+	if [ -n "$ERSA_UTEST_GIT_VERSION" ]
+	then
+		ERSA_UTEST_GIT_WEB_URL="https://github.com/OpenVPN/easyrsa-unit-tests/commit"
+		ERSA_UTEST_GIT_API_URL="https://api.github.com/repos/OpenVPN/easyrsa-unit-tests/git/refs/heads/master"
+		ERSA_UTEST_GIT_HEAD_CURL="$(curl -s $ERSA_UTEST_GIT_API_URL | sed -e 's/\"//g' -e 's/\,//g')"
+		ERSA_UTEST_GIT_HEAD_SHA="$(printf "%s\n" "$ERSA_UTEST_GIT_HEAD_CURL" | grep 'sha: ' | awk '{print $2}')"
+		ERSA_UTEST_GIT_HEAD_URL="$ERSA_UTEST_GIT_WEB_URL/$ERSA_UTEST_GIT_HEAD_SHA"
+		verbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
+		vverbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
+	fi
 }
 
 wait_sec ()
@@ -629,6 +648,7 @@ create_pki ()
 	done
 
 	init
+	version
 
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
