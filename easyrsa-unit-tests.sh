@@ -39,12 +39,12 @@ init ()
 	TEMP_DIR="$WORK_DIR/unit-tests-temp"
 	IGNORE_TEMP=${IGNORE_TEMP:-0}
 
-	if [ -d "$TEMP_DIR" ] && [ $IGNORE_TEMP -eq 0 ]
+	if [ -d "$TEMP_DIR" ] && [ $((IGNORE_TEMP)) -eq 0 ]
 	then
 		print "Aborted! Temporary directory exists: $TEMP_DIR"
 		exit 1
 	else
-		[ $IGNORE_TEMP -eq 1 ] && rm -rf "$TEMP_DIR" && warn "*** Deleted $TEMP_DIR ***"
+		[ $((IGNORE_TEMP)) -eq 1 ] && rm -rf "$TEMP_DIR" && warn "*** Deleted $TEMP_DIR ***"
 	fi
 
 	DIE="${DIE:-1}"
@@ -633,7 +633,7 @@ create_pki ()
 
 ######################################
 
-	for i in $@
+	for i in $1
 	do
 		case $i in
 		-u|-h|--help)	usage ;;
