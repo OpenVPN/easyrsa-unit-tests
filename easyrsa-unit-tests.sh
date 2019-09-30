@@ -25,7 +25,7 @@ cat << __EOF__
 	* subca sign serverClient [heartbleed]
 	* subca sign serverClient with SAN [VORACLE]
 	* subca sign client [meltdown]
-	* delete all keys andrevoke all certs on the fly
+	* delete all keys and revoke all certs on the fly
 	* generate various CRLs
 
 __EOF__
@@ -36,15 +36,15 @@ init ()
 {
 	ROOT_DIR="$(pwd)"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
-	TEMP_DIR="$WORK_DIR/temp"
-	IGNORE_TEMP=$((IGNORE_TEMP))
+	TEMP_DIR="$WORK_DIR/unit-tests-temp"
+	IGNORE_TEMP=${IGNORE_TEMP:-0}
 
 	if [ -d "$TEMP_DIR" ] && [ $IGNORE_TEMP -eq 0 ]
 	then
 		print "Aborted! Temporary directory exists: $TEMP_DIR"
 		exit 1
 	else
-		[ $IGNORE_TEMP -eq 1 ] && rm -rf "$TEMP_DIR" && print "NOTICE: Deleted $TEMP_DIR"
+		[ $IGNORE_TEMP -eq 1 ] && rm -rf "$TEMP_DIR" && warn "*** Deleted $TEMP_DIR ***"
 	fi
 
 	DIE="${DIE:-1}"
@@ -76,10 +76,37 @@ init ()
 	export LIBRESSL_BUILD="${LIBRESSL_BUILD:-0}"
 	export LIBRESSL_VERSION="${LIBRESSL_VERSION:-2.8.3}"
 	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
+
+	# Register cleanup on EXIT
+	trap "cleanup" EXIT
+	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
+	# explicitly exit to signal EXIT (non-bash shells)
+	trap "exit 1" 1
+	trap "exit 2" 2
+	trap "exit 3" 3
+	trap "exit 6" 6
+	trap "exit 14" 15
+
 }
 
 # Wrapper around printf - clobber print since it's not POSIX anyway
 print() { printf "%s\n" "$1"; }
+
+warn ()
+{
+	print "|| >> $1"
+}
+
+die ()
+{
+	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
+	[ $((DIE)) -eq 1 ] && cleanup && exit 1
+	warn "Ignored"
+	S_ERRORS=$((S_ERRORS + 1))
+	T_ERRORS=$((T_ERRORS + 1))
+	warn "$STAGE_NAME Errors: $S_ERRORS"
+	return 0
+}
 
 newline ()
 {
@@ -106,33 +133,11 @@ completed ()
 	print "$MSG .. ok"
 }
 
-warn ()
-{
-	print "|| >> $1"
-}
-
-die ()
-{
-	warn "$0 FATAL ERROR! exit 1: $1"
-	[ $((DIE)) -eq 1 ] && tear_down && exit 1
-	warn "Ignored"
-	S_ERRORS=$((S_ERRORS + 1))
-	T_ERRORS=$((T_ERRORS + 1))
-	warn "$STAGE_NAME Errors: $S_ERRORS"
-	return 0
-}
-
 vverbose ()
 {
 	[ $((VVERBOSE)) -eq 1 ] || return 0
 	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
 	print "|| :: $MSG"
-}
-
-vvverbose ()
-{
-	[ $((VVERBOSE)) -eq 1 ] || return 0
-	print "|| :: $1"
 }
 
 vdisabled ()
@@ -146,6 +151,12 @@ vcompleted ()
 	[ $((VVERBOSE)) -eq 1 ] || return 0
 	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
 	print "|| ++ $MSG .. ok"
+}
+
+vvverbose ()
+{
+	[ $((VVERBOSE)) -eq 1 ] || return 0
+	print "|| :: $1"
 }
 
 verb_on ()
@@ -223,11 +234,13 @@ setup ()
 
 destroy_data ()
 {
-	[ $((SAVE_PKI)) -ne 1 ] && rm -rf "$TEMP_DIR"
-	rm -f "$WORK_DIR/vars"
-	if [ -f "$YACF.orig" ]
+	if [ $((SAVE_PKI)) -ne 1 ]
 	then
-		mv -f "$YACF.orig" "$YACF"
+		rm -rf "$TEMP_DIR"
+		rm -f "$WORK_DIR/vars"
+		if [ -f "$YACF.orig" ]; then mv -f "$YACF.orig" "$YACF"; fi
+	else
+		warn "*** PKI and vars have not been deleted ***"
 	fi
 }
 
@@ -236,7 +249,7 @@ secure_key ()
 	rm -f "$EASYRSA_PKI/private/$REQ_name.key"
 }
 
-tear_down ()
+cleanup ()
 {
 	destroy_data
 	cd ..
@@ -426,6 +439,7 @@ show_cert ()
 
 renew_cert ()
 {
+	wait_sec
 	newline 1
 	STEP_NAME="renew $REQ_name nopass"
 	action
@@ -486,7 +500,6 @@ create_pki ()
 	REQ_name="s01"
 	build_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -495,7 +508,6 @@ create_pki ()
 	REQ_name="s02"
 	build_san_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -504,7 +516,6 @@ create_pki ()
 	REQ_name="s03"
 	build_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -513,7 +524,6 @@ create_pki ()
 	REQ_name="s04"
 	build_san_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -522,7 +532,6 @@ create_pki ()
 	REQ_name="c01"
 	build_full
 	show_cert
-	wait_sec "$DELAY"
 	renew_cert
 	show_cert
 	revoke_cert
@@ -605,7 +614,7 @@ create_pki ()
 
 ######################################
 
-	for i in $1
+	for i in $@
 	do
 		case $i in
 		-u|-h|--help)	usage ;;
@@ -638,6 +647,7 @@ create_pki ()
 		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
 		NEW_PKI="pki-sys-ssl"
 		create_pki
+		unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
@@ -688,8 +698,9 @@ create_pki ()
 		vdisabled "$STAGE_NAME"
 	fi
 
-	tear_down
+	cleanup
 
-completed "Completed (Total errors: $T_ERRORS)"
-vcompleted "Completed (Total errors: $T_ERRORS)"
+completed "Completed $(date) (Total errors: $T_ERRORS)"
+vcompleted "Completed $(date) (Total errors: $T_ERRORS)"
+
 exit 0
