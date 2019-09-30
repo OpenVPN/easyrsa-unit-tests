@@ -129,14 +129,14 @@ verbose ()
 completed ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
+	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
 	print "$MSG .. ok"
 }
 
 vverbose ()
 {
 	[ $((VVERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
+	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
 	print "|| :: $MSG"
 }
 
@@ -149,7 +149,7 @@ vdisabled ()
 vcompleted ()
 {
 	[ $((VVERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/nopass//g)"
+	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
 	print "|| ++ $MSG .. ok"
 }
 
