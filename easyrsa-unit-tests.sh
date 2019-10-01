@@ -184,9 +184,7 @@ version ()
 
 	# Windows requirement
 	# shellcheck disable=SC2230
-	ERSA_UTEST_GIT_VERSION="$(which git 2>/dev/null)"
-	if [ -n "$ERSA_UTEST_GIT_VERSION" ]
-	then
+	if which git >/dev/null 2>&1; then
 		ERSA_UTEST_GIT_WEB_URL="https://github.com/OpenVPN/easyrsa-unit-tests/commit"
 		ERSA_UTEST_GIT_API_URL="https://api.github.com/repos/OpenVPN/easyrsa-unit-tests/git/refs/heads/master"
 		ERSA_UTEST_GIT_HEAD_CURL="$(curl -s $ERSA_UTEST_GIT_API_URL | sed -e 's/\"//g' -e 's/\,//g')"
