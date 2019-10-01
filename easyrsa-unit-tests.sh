@@ -182,6 +182,8 @@ version ()
 	verbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 
+	# Windows requirement
+	# shellcheck disable=SC2230
 	ERSA_UTEST_GIT_VERSION="$(which git 2>/dev/null)"
 	if [ -n "$ERSA_UTEST_GIT_VERSION" ]
 	then
