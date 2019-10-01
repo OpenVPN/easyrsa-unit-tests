@@ -182,7 +182,9 @@ version ()
 	verbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 
-	ERSA_UTEST_GIT_VERSION="$(git --version 2>&1)"
+	# Windows requirement
+	# shellcheck disable=SC2230
+	ERSA_UTEST_GIT_VERSION="$(which git 2>/dev/null)"
 	if [ -n "$ERSA_UTEST_GIT_VERSION" ]
 	then
 		ERSA_UTEST_GIT_WEB_URL="https://github.com/OpenVPN/easyrsa-unit-tests/commit"
