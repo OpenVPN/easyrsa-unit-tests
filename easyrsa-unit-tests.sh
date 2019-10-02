@@ -197,7 +197,8 @@ version ()
 
 wait_sec ()
 {
-	( sleep "$DELAY" 2>/dev/null ) || { ( ping -n 1 127.0.0.1 2>/dev/null ) && ping -n "$DELAY" 127.0.0.1; }
+	( sleep "$DELAY" 2>/dev/null ) || \
+	{ ( ping -n 1 127.0.0.1 >/dev/null 2>&1 ) && ping -n "$DELAY" 127.0.0.1 >/dev/null 2>&1; }
 }
 
 setup ()
@@ -328,8 +329,6 @@ create_req ()
 	action
 	secure_key
 
-	# SAN will be lost
-	#verb_on
 	export EASYRSA_REQ_CN="VORACLE"
 	STEP_NAME="--subject-alt-name='DNS:www.example.org,IP:0.0.0.0' gen-req $EASYRSA_REQ_CN nopass"
 	action
@@ -337,7 +336,6 @@ create_req ()
 
 	STEP_NAME="show-req $EASYRSA_REQ_CN nopass"
 	action
-	#verb_off
 
 	unset EASYRSA_REQ_CN
 	unset EASYRSA_BATCH
@@ -569,7 +567,6 @@ create_pki ()
 	show_cert
 	revoke_cert
 
-	# SAN is lost.
 	REQ_type="serverClient"
 	REQ_name="VORACLE"
 	import_req
