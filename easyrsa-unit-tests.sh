@@ -178,17 +178,21 @@ verb_off ()
 version ()
 {
 	newline 1
-	ERSA_UTEST_VERSION="1.0"
+	ERSA_UTEST_VERSION="1.1a"
 	verbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 
 	# Windows requirement
 	# shellcheck disable=SC2230
-	if which git >/dev/null 2>&1; then
-		ERSA_UTEST_GIT_WEB_URL="https://github.com/OpenVPN/easyrsa-unit-tests/commit"
-		ERSA_UTEST_GIT_API_URL="https://api.github.com/repos/OpenVPN/easyrsa-unit-tests/git/refs/heads/master"
-		ERSA_UTEST_GIT_HEAD_CURL="$(curl -s $ERSA_UTEST_GIT_API_URL | sed -e 's/\"//g' -e 's/\,//g')"
-		ERSA_UTEST_GIT_HEAD_SHA="$(printf "%s\n" "$ERSA_UTEST_GIT_HEAD_CURL" | grep 'sha: ' | awk '{print $2}')"
+	if which curl >/dev/null 2>&1; then
+		ERSA_UTEST_CURL_OPTS='-H "User-Agent: tincantech"'
+		[ $((VVERBOSE)) -eq 1 ] && ERSA_UTEST_CURL_VERB='-v'
+		ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-Openvpn/easyrsa-unit-tests}"
+		ERSA_UTEST_GIT_WEB_URL="https://github.com/$ERSA_UTEST_CURL_TARGET/commit"
+		ERSA_UTEST_GIT_API_URL="https://api.github.com/repos/$ERSA_UTEST_CURL_TARGET/git/refs/heads/master"
+		ERSA_UTEST_GIT_HEAD_CURL="$(curl -s "$ERSA_UTEST_CURL_VERB" "$ERSA_UTEST_CURL_OPTS" "$ERSA_UTEST_GIT_API_URL")"
+		ERSA_UTEST_GIT_HEAD_SHA="$(printf "%s\n" "$ERSA_UTEST_GIT_HEAD_CURL" \
+			| sed -e 's/\"//g' -e 's/\,//g' | grep 'sha: ' | awk '{print $2}')"
 		ERSA_UTEST_GIT_HEAD_URL="$ERSA_UTEST_GIT_WEB_URL/$ERSA_UTEST_GIT_HEAD_SHA"
 		verbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
 		vverbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
