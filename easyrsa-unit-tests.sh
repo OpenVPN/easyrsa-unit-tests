@@ -119,17 +119,23 @@ newline ()
 	fi
 }
 
+notice ()
+{
+	[ $((VERBOSE)) -eq 1 ] || return 0
+	printf "%s\n" "$1"
+}
+
 verbose ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	print "$1"
+	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
+	printf "%s" "$MSG .. "
 }
 
 completed ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
-	print "$MSG .. ok"
+	print "ok"
 }
 
 vverbose ()
@@ -178,8 +184,8 @@ verb_off ()
 version ()
 {
 	newline 1
-	ERSA_UTEST_VERSION="1.1a"
-	verbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
+	ERSA_UTEST_VERSION="1.1b"
+	notice "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 
 	# Windows requirement
@@ -194,20 +200,24 @@ version ()
 		ERSA_UTEST_GIT_HEAD_SHA="$(printf "%s\n" "$ERSA_UTEST_GIT_HEAD_CURL" \
 			| sed -e 's/\"//g' -e 's/\,//g' | grep 'sha: ' | awk '{print $2}')"
 		ERSA_UTEST_GIT_HEAD_URL="$ERSA_UTEST_GIT_WEB_URL/$ERSA_UTEST_GIT_HEAD_SHA"
-		verbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
+		notice "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
 		vverbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
 	fi
 }
 
 wait_sec ()
 {
+	verbose "Wait"
+	vverbose "Wait"
 	( sleep "$DELAY" 2>/dev/null ) || \
 	{ ( ping -n 1 127.0.0.1 >/dev/null 2>&1 ) && ping -n "$DELAY" 127.0.0.1 >/dev/null 2>&1; }
+	completed
 }
 
 setup ()
 {
 	newline 1
+	verbose "Setup"
 	vverbose "Setup"
 
 	cd "$WORK_DIR" || die "cd $WORK_DIR"
@@ -253,7 +263,7 @@ setup ()
 		vdisabled "$STAGE_NAME"
 	fi
 
-	completed "Setup"
+	completed
 }
 
 destroy_data ()
@@ -357,18 +367,21 @@ move_ca ()
 {
 	newline 1
 	STEP_NAME="Send ca to origin"
+	verbose "$STEP_NAME"
 	mv "$EASYRSA_PKI/issued/$REQ_name.crt" "$TEMP_DIR/pki-req/ca.crt" >/dev/null 2>&1 || die "$STEP_NAME"
-	completed "$STEP_NAME"
+	completed
 	vcompleted "$STEP_NAME"
 
 	STEP_NAME="Change PKI to origin"
+	verbose "$STEP_NAME"
 	export EASYRSA_PKI="$TEMP_DIR/pki-req"
-	completed "$STEP_NAME"
+	completed
 	vcompleted "$STEP_NAME"
 }
 
 action ()
 {
+	verbose "$STEP_NAME"
 	vverbose "$STEP_NAME"
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
@@ -379,7 +392,7 @@ action ()
 		# shellcheck disable=SC2086
 		"$ERSA_BIN" $STEP_NAME || die "$STEP_NAME"
 	fi
-	completed "$STEP_NAME"
+	completed
 }
 
 init_pki ()
@@ -500,7 +513,8 @@ create_pki ()
 	newline 1
 	vverbose "$STAGE_NAME"
 	vvverbose "EASYRSA_OPENSSL: $EASYRSA_OPENSSL"
-	verbose "$($EASYRSA_OPENSSL version 2> /dev/null)"
+	notice "$($EASYRSA_OPENSSL version)"
+		#  2> /dev/null
 	vverbose "$($EASYRSA_OPENSSL version 2> /dev/null)"
 
 	restore_req
@@ -721,7 +735,7 @@ create_pki ()
 
 	cleanup
 
-completed "Completed $(date) (Total errors: $T_ERRORS)"
+notice "Completed $(date) (Total errors: $T_ERRORS)"
 vcompleted "Completed $(date) (Total errors: $T_ERRORS)"
 
 exit 0
