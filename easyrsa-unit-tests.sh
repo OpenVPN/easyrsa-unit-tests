@@ -100,7 +100,7 @@ warn ()
 die ()
 {
 	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
-	[ $((DIE)) -eq 1 ] && cleanup && exit 1
+	[ $((DIE)) -eq 1 ] && exit 1
 	warn "Ignored"
 	S_ERRORS=$((S_ERRORS + 1))
 	T_ERRORS=$((T_ERRORS + 1))
