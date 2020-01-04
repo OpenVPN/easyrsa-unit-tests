@@ -184,7 +184,7 @@ verb_off ()
 version ()
 {
 	newline 1
-	ERSA_UTEST_VERSION="1.1b"
+	ERSA_UTEST_VERSION="1.2"
 	notice "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
 
@@ -383,14 +383,17 @@ action ()
 {
 	verbose "$STEP_NAME"
 	vverbose "$STEP_NAME"
+	# Required to support $PATH with spaces (import-req)
+	ACT_FILE_NAME="$1"
+	ACT_OPTS="$2"
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
 		newline
 		# shellcheck disable=SC2086
-		"$ERSA_BIN" $STEP_NAME >/dev/null 2>&1 || die "$STEP_NAME"
+		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" >/dev/null 2>&1 || die "$STEP_NAME"
 	else
 		# shellcheck disable=SC2086
-		"$ERSA_BIN" $STEP_NAME || die "$STEP_NAME"
+		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" || die "$STEP_NAME"
 	fi
 	completed
 }
@@ -441,8 +444,8 @@ import_req ()
 	# Note: easyrsa still appears to work in batch mode for this action ?
 	export EASYRSA_BATCH=0
 	newline 1
-	STEP_NAME="import-req $REQ_file $REQ_name"
-	action
+	STEP_NAME="import-req"
+	action "$REQ_file" "$REQ_name"
 	export EASYRSA_BATCH=1
 }
 
