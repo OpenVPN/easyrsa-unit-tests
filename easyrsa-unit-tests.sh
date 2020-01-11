@@ -424,7 +424,7 @@ show_ca ()
 build_full ()
 {
 	newline 1
-	STEP_NAME="build-$REQ_type-full $REQ_name nopass"
+	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
 	action
 	secure_key
 }
@@ -432,7 +432,7 @@ build_full ()
 build_san_full ()
 {
 	newline 1
-	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass"
+	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
 	action
 	secure_key
 }
