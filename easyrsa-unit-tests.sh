@@ -2,7 +2,17 @@
 #
 # Runs operational testing
 
-set -e
+# Easy-RSA 3 -- A Shell-based CA Utility
+#
+# Copyright (C) 2020 by the Open-Source OpenVPN development community.
+# A full list of contributors can be found in the ChangeLog.
+#
+# This code released under version 2 of the GNU GPL; see COPYING and the
+# Licensing/ directory of this project for full licensing details.
+#
+# easyrsa-unit-tests.sh (2020)
+
+#set -xe
 
 usage ()
 {
@@ -29,7 +39,7 @@ cat << __EOF__
 	* generate various CRLs
 
 __EOF__
-exit 0
+success 0
 }
 
 init ()
@@ -37,12 +47,14 @@ init ()
 	ROOT_DIR="$(pwd)"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
 	TEMP_DIR="$WORK_DIR/unit-tests-temp"
+	X509_DIR="$WORK_DIR/x509-types"
+	[ -d "$X509_DIR" ] && X509_SAVE=1
 	IGNORE_TEMP=${IGNORE_TEMP:-0}
 
 	if [ -d "$TEMP_DIR" ] && [ $((IGNORE_TEMP)) -eq 0 ]
 	then
 		print "Aborted! Temporary directory exists: $TEMP_DIR"
-		exit 1
+		failed 1
 	else
 		[ $((IGNORE_TEMP)) -eq 1 ] && rm -rf "$TEMP_DIR" && warn "*** Deleted $TEMP_DIR ***"
 	fi
@@ -53,10 +65,11 @@ init ()
 	DELAY=${DELAY:-1}
 	VERBOSE="${VERBOSE:-0}"
 	VVERBOSE="${VVERBOSE:-0}"
+	LOG_INDENT=""
 	SHOW_CERT="${SHOW_CERT:-0}"
 	SAVE_PKI="${SAVE_PKI:-0}"
 	ERSA_OUT="${ERSA_OUT:-0}"
-	ERSA_BIN="./easyrsa"
+	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
@@ -64,6 +77,7 @@ init ()
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	export DEPS_DIR="$ROOT_DIR/testdeps"
+	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-2048}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-1}"
 	export OPENSSL_ENABLE="${OPENSSL_ENABLE:-0}"
@@ -78,29 +92,47 @@ init ()
 	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
 
 	# Register cleanup on EXIT
-	trap "cleanup" EXIT
+	#trap "exited 0" 0
 	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
 	# explicitly exit to signal EXIT (non-bash shells)
-	trap "exit 1" 1
-	trap "exit 2" 2
-	trap "exit 3" 3
-	trap "exit 6" 6
-	trap "exit 14" 15
-
+	trap "failed 1" 1
+	trap "failed 2" 2
+	trap "failed 3" 3
+	trap "failed 6" 6
+	trap "failed 14" 15
 }
+
+success ()
+{
+	vverbose "EXIT: exit 0"
+	exit 0
+}
+
+failed ()
+{
+	ERROR_CODE="$1"
+	cleanup
+	print
+	print "ERROR: exit $1"
+	exit $((ERROR_CODE))
+}
+
+
 
 # Wrapper around printf - clobber print since it's not POSIX anyway
 print() { printf "%s\n" "$1"; }
 
 warn ()
 {
-	print "|| >> $1"
+	[ "$SILENCE_WARN" ] && return
+	print "$1"
 }
 
 die ()
 {
-	warn "$0 FATAL ERROR! exit 1: ${1:-unknown error}"
-	[ $((DIE)) -eq 1 ] && exit 1
+	print
+	print "FATAL ERROR! Command failed -> ${1:-unknown error}"
+	[ $((DIE)) -eq 1 ] && failed 1
 	warn "Ignored"
 	S_ERRORS=$((S_ERRORS + 1))
 	T_ERRORS=$((T_ERRORS + 1))
@@ -125,11 +157,17 @@ notice ()
 	printf "%s\n" "$1"
 }
 
+filter_msg ()
+{
+	MSG="$(print "$1" | sed -e s/--.*,//g -e s/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]\ //g -e s\`/.*/\`\`g -e s/\ nopass//g -e s/\ inline//g)"
+}
+
+# verbose and completed work together
 verbose ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
-	printf "%s" "$MSG .. "
+	filter_msg "$1"
+	printf "%s" "$LOG_INDENT" "$MSG .. "
 }
 
 completed ()
@@ -141,7 +179,7 @@ completed ()
 vverbose ()
 {
 	[ $((VVERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
+	filter_msg "$1"
 	print "|| :: $MSG"
 }
 
@@ -154,7 +192,7 @@ vdisabled ()
 vcompleted ()
 {
 	[ $((VVERBOSE)) -eq 1 ] || return 0
-	MSG="$(print "$1" | sed -e s/^--.*0\ //g -e s\`/.*/\`\`g -e s/\ nopass//g)"
+	filter_msg "$1"
 	print "|| ++ $MSG .. ok"
 }
 
@@ -166,6 +204,7 @@ vvverbose ()
 
 verb_on ()
 {
+	unset SILENCE_WARN
 	VERBOSE="$SAVE_VERB"
 	VVERBOSE="$SAVE_VVERB"
 	ERSA_OUT="$SAVE_EOUT"
@@ -173,6 +212,7 @@ verb_on ()
 
 verb_off ()
 {
+	SILENCE_WARN=1
 	SAVE_VERB="$VERBOSE"
 	VERBOSE=0
 	SAVE_VVERB="$VVERBOSE"
@@ -181,28 +221,12 @@ verb_off ()
 	ERSA_OUT=0
 }
 
-version ()
+easyrsa_unit_test_version ()
 {
 	newline 1
-	ERSA_UTEST_VERSION="1.2"
-	notice "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
-	vverbose "easyrsa-unit-tests manual version: $ERSA_UTEST_VERSION"
-
-	# Windows requirement
-	# shellcheck disable=SC2230
-	if which curl >/dev/null 2>&1; then
-		ERSA_UTEST_CURL_OPTS='-H "User-Agent: tincantech"'
-		[ $((VVERBOSE)) -eq 1 ] && ERSA_UTEST_CURL_VERB='-v'
-		ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-Openvpn/easyrsa-unit-tests}"
-		ERSA_UTEST_GIT_WEB_URL="https://github.com/$ERSA_UTEST_CURL_TARGET/commit"
-		ERSA_UTEST_GIT_API_URL="https://api.github.com/repos/$ERSA_UTEST_CURL_TARGET/git/refs/heads/master"
-		ERSA_UTEST_GIT_HEAD_CURL="$(curl -s "$ERSA_UTEST_CURL_VERB" "$ERSA_UTEST_CURL_OPTS" "$ERSA_UTEST_GIT_API_URL")"
-		ERSA_UTEST_GIT_HEAD_SHA="$(printf "%s\n" "$ERSA_UTEST_GIT_HEAD_CURL" \
-			| sed -e 's/\"//g' -e 's/\,//g' | grep 'sha: ' | awk '{print $2}')"
-		ERSA_UTEST_GIT_HEAD_URL="$ERSA_UTEST_GIT_WEB_URL/$ERSA_UTEST_GIT_HEAD_SHA"
-		notice "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
-		vverbose "easyrsa-unit-tests git commit URL: $ERSA_UTEST_GIT_HEAD_URL"
-	fi
+	ERSA_UTEST_VERSION="2.0"
+	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
+	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 }
 
 wait_sec ()
@@ -223,13 +247,17 @@ setup ()
 	cd "$WORK_DIR" || die "cd $WORK_DIR"
 	vvverbose "Working dir: $WORK_DIR"
 
+	verb_off
 	destroy_data
+	verb_on
 
 	STEP_NAME="vars"
 	if [ $((CUSTOM_VARS)) -eq 1 ]
 	then
-		[ -f "$WORK_DIR/vars.example" ] || dir "File missing: $WORK_DIR/vars.example"
-		cp "$WORK_DIR/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
+		# TODO: MUST Find a usable vars.example because of the live code in vars
+		# FOUND_VARS=`where is vars.example`
+		#[ -f "$FOUND_VARS/vars.example" ] || dir "File missing: $FOUND_VARS/vars.example"
+		#cp "$FOUND_VARS/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
 		create_vars >> "$WORK_DIR/vars" || die "create_vars"
 		vcompleted "$STEP_NAME"
 	else
@@ -254,9 +282,15 @@ setup ()
 	if [ $((UNSIGNED_PKI)) -eq 1 ] && [ $((SYS_SSL_ENABLE + CUST_SSL_ENABLE + OPENSSL_ENABLE + LIBRESSL_ENABLE)) -ne 0 ]
 	then
 		verb_off
-		NEW_PKI="pki-req"
-		create_req || die "$STAGE_NAME create_req"
-		mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp" || die "$STAGE_NAME mv"
+		for i in rsa ec
+		do
+			export EASYRSA_ALGO="$i"
+			NEW_PKI="pki-req-$EASYRSA_ALGO"
+			create_req || die "$STAGE_NAME create_req $EASYRSA_ALGO"
+			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
+			unset EASYRSA_ALGO
+			unset NEW_PKI
+		done
 		verb_on
 		vcompleted "$STAGE_NAME"
 	else
@@ -268,9 +302,15 @@ setup ()
 
 destroy_data ()
 {
+	for i in pki-bkp-rsa pki-bkp-ec; do
+		EASYRSA_PKI="$TEMP_DIR/$i"
+		secure_ca
+	done
+
 	if [ $((SAVE_PKI)) -ne 1 ]
 	then
 		rm -rf "$TEMP_DIR"
+		[ "$X509_SAVE" ] || rm -rf "$X509_DIR"
 		rm -f "$WORK_DIR/vars"
 		if [ -f "$YACF.orig" ]; then mv -f "$YACF.orig" "$YACF"; fi
 	else
@@ -281,6 +321,12 @@ destroy_data ()
 secure_key ()
 {
 	rm -f "$EASYRSA_PKI/private/$REQ_name.key"
+	rm -f "$EASYRSA_PKI/private/$EASYRSA_REQ_CN.key"
+}
+
+secure_ca ()
+{
+	rm -f "$EASYRSA_PKI/private/ca.key"
 }
 
 cleanup ()
@@ -344,45 +390,44 @@ create_req ()
 	secure_key
 
 	export EASYRSA_REQ_CN="VORACLE"
-	STEP_NAME="--subject-alt-name='DNS:www.example.org,IP:0.0.0.0' gen-req $EASYRSA_REQ_CN nopass"
+	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 gen-req $EASYRSA_REQ_CN nopass"
 	action
 	secure_key
 
-	STEP_NAME="show-req $EASYRSA_REQ_CN nopass"
-	action
-
 	unset EASYRSA_REQ_CN
 	unset EASYRSA_BATCH
+	unset EASYRSA_PKI
 }
 
 restore_req ()
 {
 	STEP_NAME="Restore sample requests"
-	rm -rf "$TEMP_DIR/pki-req"
-	cp -Rf "$TEMP_DIR/pki-bkp" "$TEMP_DIR/pki-req" >/dev/null 2>&1 || die "$STEP_NAME"
+	rm -rf "$TEMP_DIR/pki-req-$EASYRSA_ALGO"
+	# Windows: cp.exe -R --recursive (-r copy recursively, non-directories as files)
+	cp -f --recursive "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" >/dev/null 2>&1 || die "$STEP_NAME"
 	vcompleted "$STEP_NAME"
 }
 
 move_ca ()
 {
 	newline 1
-	STEP_NAME="Send ca to origin"
+	STEP_NAME="Send sub-ca maximilian to origin"
 	verbose "$STEP_NAME"
-	mv "$EASYRSA_PKI/issued/$REQ_name.crt" "$TEMP_DIR/pki-req/ca.crt" >/dev/null 2>&1 || die "$STEP_NAME"
+	mv "$EASYRSA_PKI/issued/$REQ_name.crt" "$TEMP_DIR/pki-req-$EASYRSA_ALGO/ca.crt" >/dev/null 2>&1 || die "$STEP_NAME"
 	completed
 	vcompleted "$STEP_NAME"
 
-	STEP_NAME="Change PKI to origin"
+	STEP_NAME="Change PKI to sub-ca maximilian"
 	verbose "$STEP_NAME"
-	export EASYRSA_PKI="$TEMP_DIR/pki-req"
+	export EASYRSA_PKI="$TEMP_DIR/pki-req-$EASYRSA_ALGO"
 	completed
 	vcompleted "$STEP_NAME"
 }
 
 action ()
 {
-	verbose "$STEP_NAME"
-	vverbose "$STEP_NAME"
+	verbose "$EASYRSA_ALGO: $STEP_NAME"
+	vverbose "$EASYRSA_ALGO: $STEP_NAME"
 	# Required to support $PATH with spaces (import-req)
 	ACT_FILE_NAME="$1"
 	ACT_OPTS="$2"
@@ -439,7 +484,7 @@ build_san_full ()
 
 import_req ()
 {
-	REQ_file="$TEMP_DIR/pki-req/reqs/$REQ_name.req"
+	REQ_file="$TEMP_DIR/pki-req-$EASYRSA_ALGO/reqs/$REQ_name.req"
 
 	# Note: easyrsa still appears to work in batch mode for this action ?
 	export EASYRSA_BATCH=0
@@ -463,6 +508,7 @@ sign_req ()
 	newline 1
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
+	secure_key
 }
 
 show_cert ()
@@ -478,8 +524,10 @@ renew_cert ()
 {
 	wait_sec
 	newline 1
+	# This will probably need an inline option
 	STEP_NAME="renew $REQ_name nopass"
 	action
+	secure_key
 }
 
 revoke_cert ()
@@ -515,10 +563,6 @@ create_pki ()
 {
 	newline 1
 	vverbose "$STAGE_NAME"
-	vvverbose "EASYRSA_OPENSSL: $EASYRSA_OPENSSL"
-	notice "$($EASYRSA_OPENSSL version)"
-		#  2> /dev/null
-	vverbose "$($EASYRSA_OPENSSL version 2> /dev/null)"
 
 	restore_req
 
@@ -530,6 +574,8 @@ create_pki ()
 		init_pki
 	fi
 	export EASYRSA_BATCH=1
+
+	LOG_INDENT=" - "
 
 	build_ca
 	show_ca
@@ -609,9 +655,13 @@ create_pki ()
 	import_req
 	sign_req
 
-	# goto origin
+	secure_ca
+
+	# goto sub-ca maximilian
+	LOG_INDENT=""
 	move_ca
 	show_ca
+	LOG_INDENT="   - "
 
 	REQ_type="server"
 	REQ_name="specter"
@@ -639,8 +689,11 @@ create_pki ()
 
 	gen_crl
 
+	secure_ca
+
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
+	LOG_INDENT=""
 
 	newline 1
 	vcompleted "$STAGE_NAME (Errors: $S_ERRORS)"
@@ -661,12 +714,12 @@ create_pki ()
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-f)		DIE=0; CUST_SSL_ENABLE=1; OPENSSL_ENABLE=1; LIBRESSL_ENABLE=1;
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
-		*)		print "Unknown option: $i"; exit 1 ;;
+		*)		print "Unknown option: $i"; failed 1 ;;
 		esac
 	done
 
 	init
-	version
+	easyrsa_unit_test_version
 
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
@@ -683,8 +736,13 @@ create_pki ()
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
 		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
-		NEW_PKI="pki-sys-ssl"
-		create_pki
+		for i in rsa ec
+		do
+			export EASYRSA_ALGO="$i"
+			NEW_PKI="pki-sys-ssl-$EASYRSA_ALGO"
+			create_pki
+			unset EASYRSA_ALGO
+		done
 		unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
@@ -729,6 +787,7 @@ create_pki ()
 	STAGE_NAME="Common errors (Does *not* die on errors)"
 	if [ $((BROKEN_PKI)) -eq 1 ]
 	then
+		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
 		NEW_PKI="pki-empty"
 		#restore_req
 		DIE=0 create_pki
@@ -741,4 +800,4 @@ create_pki ()
 notice "Completed $(date) (Total errors: $T_ERRORS)"
 vcompleted "Completed $(date) (Total errors: $T_ERRORS)"
 
-exit 0
+success 0
