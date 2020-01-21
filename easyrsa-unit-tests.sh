@@ -69,6 +69,8 @@ init ()
 	SHOW_CERT="${SHOW_CERT:-0}"
 	SAVE_PKI="${SAVE_PKI:-0}"
 	ERSA_OUT="${ERSA_OUT:-0}"
+	ACT_OUT="./.act.out"
+	ACT_ERR="./.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
@@ -132,6 +134,13 @@ die ()
 {
 	print
 	print "FATAL ERROR! Command failed -> ${1:-unknown error}"
+	print
+	print "EasyRSA log:"
+	cat "$ACT_OUT"
+	print
+	print "Error message:"
+	cat "$ACT_ERR"
+
 	[ $((DIE)) -eq 1 ] && failed 1
 	warn "Ignored"
 	S_ERRORS=$((S_ERRORS + 1))
@@ -307,6 +316,8 @@ destroy_data ()
 		secure_ca
 	done
 
+	rm -f "$ACT_OUT" "$ACT_ERR"
+
 	if [ $((SAVE_PKI)) -ne 1 ]
 	then
 		rm -rf "$TEMP_DIR"
@@ -435,7 +446,7 @@ action ()
 	then
 		newline
 		# shellcheck disable=SC2086
-		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" >/dev/null 2>&1 || die "$STEP_NAME"
+		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
 	else
 		# shellcheck disable=SC2086
 		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" || die "$STEP_NAME"
