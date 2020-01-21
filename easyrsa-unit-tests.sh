@@ -233,7 +233,7 @@ verb_off ()
 easyrsa_unit_test_version ()
 {
 	newline 1
-	ERSA_UTEST_VERSION="2.0"
+	ERSA_UTEST_VERSION="2.1"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 }
