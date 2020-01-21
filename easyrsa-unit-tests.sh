@@ -65,13 +65,16 @@ init ()
 	DELAY=${DELAY:-1}
 	VERBOSE="${VERBOSE:-0}"
 	VVERBOSE="${VVERBOSE:-0}"
-	LOG_INDENT=""
+	LOG_INDENT_1=" - "
+	LOG_INDENT_2="    - "
+
 	SHOW_CERT="${SHOW_CERT:-0}"
 	SAVE_PKI="${SAVE_PKI:-0}"
 	ERSA_OUT="${ERSA_OUT:-0}"
 	ACT_OUT="./.act.out"
 	ACT_ERR="./.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
+	TEST_ALGOS="rsa ec"
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
@@ -79,7 +82,7 @@ init ()
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	export DEPS_DIR="$ROOT_DIR/testdeps"
-	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-2048}"
+	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-1}"
 	export OPENSSL_ENABLE="${OPENSSL_ENABLE:-0}"
@@ -163,7 +166,7 @@ newline ()
 notice ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	printf "%s\n" "$1"
+	print "$1"
 }
 
 filter_msg ()
@@ -291,7 +294,7 @@ setup ()
 	if [ $((UNSIGNED_PKI)) -eq 1 ] && [ $((SYS_SSL_ENABLE + CUST_SSL_ENABLE + OPENSSL_ENABLE + LIBRESSL_ENABLE)) -ne 0 ]
 	then
 		verb_off
-		for i in rsa ec
+		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
 			NEW_PKI="pki-req-$EASYRSA_ALGO"
@@ -586,7 +589,7 @@ create_pki ()
 	fi
 	export EASYRSA_BATCH=1
 
-	LOG_INDENT=" - "
+	LOG_INDENT="$LOG_INDENT_1"
 
 	build_ca
 	show_ca
@@ -672,7 +675,7 @@ create_pki ()
 	LOG_INDENT=""
 	move_ca
 	show_ca
-	LOG_INDENT="   - "
+	LOG_INDENT="$LOG_INDENT_2"
 
 	REQ_type="server"
 	REQ_name="specter"
@@ -704,7 +707,7 @@ create_pki ()
 
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
-	LOG_INDENT=""
+	unset LOG_INDENT
 
 	newline 1
 	vcompleted "$STAGE_NAME (Errors: $S_ERRORS)"
@@ -747,7 +750,7 @@ create_pki ()
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
 		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
-		for i in rsa ec
+		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
 			NEW_PKI="pki-sys-ssl-$EASYRSA_ALGO"
@@ -762,7 +765,7 @@ create_pki ()
 	STAGE_NAME="Custom ssl"
 	if [ $((CUST_SSL_ENABLE)) -eq 1 ]
 	then
-		[ -f "$CUST_SSL_LIBB" ] || die "$0: missing custom ssl: $CUST_SSL_LIBB"
+		[ -f "$CUST_SSL_LIBB" ] || die "Missing custom ssl: $CUST_SSL_LIBB"
 		export EASYRSA_OPENSSL="$CUST_SSL_LIBB"
 		NEW_PKI="pki-custom-ssl"
 		create_pki
@@ -774,7 +777,7 @@ create_pki ()
 	STAGE_NAME="Openssl"
 	if [ $((OPENSSL_ENABLE)) -eq 1 ]
 	then
-		[ -f "$OSSL_LIBB" ] || die "$0: missing openssl: $OSSL_LIBB"
+		[ -f "$OSSL_LIBB" ] || die "Missing openssl: $OSSL_LIBB"
 		export EASYRSA_OPENSSL="$OSSL_LIBB"
 		NEW_PKI="pki-openssl"
 		create_pki
@@ -786,7 +789,7 @@ create_pki ()
 	STAGE_NAME="Libressl"
 	if [ $((LIBRESSL_ENABLE)) -eq 1 ]
 	then
-		[ -f "$LSSL_LIBB" ] || die "$0: missing libressl: $LSSL_LIBB"
+		[ -f "$LSSL_LIBB" ] || die "Missing libressl: $LSSL_LIBB"
 		export EASYRSA_OPENSSL="$LSSL_LIBB"
 		NEW_PKI="pki-libressl"
 		create_pki
