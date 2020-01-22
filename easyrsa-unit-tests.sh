@@ -80,6 +80,7 @@ init ()
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	EASYRSA_SP="${EASYRSA_SP:-private}"
+	ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-localhost}"
 	export DEPS_DIR="$ROOT_DIR/testdeps"
 	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
@@ -235,11 +236,16 @@ verb_off ()
 easyrsa_unit_test_version ()
 {
 	newline 3
+
 	ERSA_UTEST_VERSION="2.2.3"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
+
+	SSL_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
+	notice "SSL version: $SSL_LIB_VERSION"
+	vverbose "SSL version: $SSL_LIB_VERSION"
 }
 
 wait_sec ()
