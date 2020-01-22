@@ -235,9 +235,11 @@ verb_off ()
 easyrsa_unit_test_version ()
 {
 	newline 3
-	ERSA_UTEST_VERSION="2.2.1"
+	ERSA_UTEST_VERSION="2.2.2"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
+	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
+	vverbose "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 }
 
 wait_sec ()
