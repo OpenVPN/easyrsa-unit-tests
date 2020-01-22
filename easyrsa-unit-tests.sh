@@ -12,8 +12,6 @@
 #
 # easyrsa-unit-tests.sh (2020)
 
-#set -xe
-
 usage ()
 {
 cat << __EOF__
@@ -81,6 +79,7 @@ init ()
 	SYS_SSL_LIBB="openssl"
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
+	EASYRSA_SP="${EASYRSA_SP:-private}"
 	export DEPS_DIR="$ROOT_DIR/testdeps"
 	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
@@ -115,8 +114,10 @@ success ()
 
 failed ()
 {
+	ERROR_COUNT=$((ERROR_COUNT+1))
+	[ $((ERROR_COUNT)) -gt 1 ] && echo "TOAST" && exit 9
 	ERROR_CODE="$1"
-	cleanup
+	[ $((DIE)) -eq 1 ] && cleanup
 	print
 	print "ERROR: exit $1"
 	exit $((ERROR_CODE))
@@ -139,10 +140,10 @@ die ()
 	print "FATAL ERROR! Command failed -> ${1:-unknown error}"
 	print
 	print "EasyRSA log:"
-	cat "$ACT_OUT"
+	[ -f  "$ACT_OUT" ] && cat "$ACT_OUT"
 	print
 	print "Error message:"
-	cat "$ACT_ERR"
+	[ -f "$ACT_ERR"  ] && cat "$ACT_ERR"
 
 	[ $((DIE)) -eq 1 ] && failed 1
 	warn "Ignored"
@@ -155,9 +156,12 @@ die ()
 newline ()
 {
 	[ $((VVERBOSE + SHOW_CERT_ONLY)) -eq 0 ] && return 0
-	if [ "$1" = "1" ]
-	then
-		print "|| ============================================================================"
+	if [ "$1" = "3" ]; then
+		print "|| ###########################################################################"
+	elif [ "$1" = "2" ]; then
+		print "|| ==========================================================================="
+	elif [ "$1" = "1" ]; then
+		print "|| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 	else
 		[ $((ERSA_OUT)) -ne 1 ] || print
 	fi
@@ -235,8 +239,8 @@ verb_off ()
 
 easyrsa_unit_test_version ()
 {
-	newline 1
-	ERSA_UTEST_VERSION="2.1"
+	newline 3
+	ERSA_UTEST_VERSION="2.2"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 }
@@ -252,7 +256,7 @@ wait_sec ()
 
 setup ()
 {
-	newline 1
+	newline 3
 	verbose "Setup"
 	vverbose "Setup"
 
@@ -314,9 +318,10 @@ setup ()
 
 destroy_data ()
 {
+	LIVE_PKI=0
 	for i in pki-bkp-rsa pki-bkp-ec; do
 		EASYRSA_PKI="$TEMP_DIR/$i"
-		secure_ca
+		secure_key
 	done
 
 	rm -f "$ACT_OUT" "$ACT_ERR"
@@ -334,13 +339,10 @@ destroy_data ()
 
 secure_key ()
 {
-	rm -f "$EASYRSA_PKI/private/$REQ_name.key"
-	rm -f "$EASYRSA_PKI/private/$EASYRSA_REQ_CN.key"
-}
-
-secure_ca ()
-{
-	rm -f "$EASYRSA_PKI/private/ca.key"
+	rm -f "$EASYRSA_PKI/$EASYRSA_SP/$REQ_name.key"
+	rm -f "$EASYRSA_PKI/$EASYRSA_SP/$EASYRSA_REQ_CN.key"
+	[ $((LIVE_PKI)) -eq 0 ] && rm -f "$EASYRSA_PKI/$EASYRSA_SP/ca.key"
+	rm -f "$EASYRSA_PKI/$REQ_name.creds"
 }
 
 cleanup ()
@@ -378,9 +380,7 @@ create_custom_opts ()
 create_req ()
 {
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
-
-	STEP_NAME="init-pki"
-	action
+	init_pki
 
 	export EASYRSA_BATCH=1
 	export EASYRSA_REQ_CN="maximilian"
@@ -415,7 +415,7 @@ create_req ()
 
 restore_req ()
 {
-	STEP_NAME="Restore sample requests"
+	STEP_NAME="Restore sample $EASYRSA_ALGO requests"
 	rm -rf "$TEMP_DIR/pki-req-$EASYRSA_ALGO"
 	# Windows: cp.exe -R --recursive (-r copy recursively, non-directories as files)
 	cp -f --recursive "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" >/dev/null 2>&1 || die "$STEP_NAME"
@@ -424,14 +424,14 @@ restore_req ()
 
 move_ca ()
 {
-	newline 1
-	STEP_NAME="Send sub-ca maximilian to origin"
+	newline 3
+	STEP_NAME="Send $EASYRSA_ALGO sub-ca maximilian to origin"
 	verbose "$STEP_NAME"
 	mv "$EASYRSA_PKI/issued/$REQ_name.crt" "$TEMP_DIR/pki-req-$EASYRSA_ALGO/ca.crt" >/dev/null 2>&1 || die "$STEP_NAME"
 	completed
 	vcompleted "$STEP_NAME"
 
-	STEP_NAME="Change PKI to sub-ca maximilian"
+	STEP_NAME="Change PKI to $EASYRSA_ALGO sub-ca maximilian"
 	verbose "$STEP_NAME"
 	export EASYRSA_PKI="$TEMP_DIR/pki-req-$EASYRSA_ALGO"
 	completed
@@ -440,11 +440,11 @@ move_ca ()
 
 action ()
 {
-	verbose "$EASYRSA_ALGO: $STEP_NAME"
-	vverbose "$EASYRSA_ALGO: $STEP_NAME"
 	# Required to support $PATH with spaces (import-req)
 	ACT_FILE_NAME="$1"
 	ACT_OPTS="$2"
+	verbose "$EASYRSA_ALGO: $STEP_NAME $ACT_OPTS"
+	vverbose "$EASYRSA_ALGO: $STEP_NAME $ACT_OPTS"
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
 		newline
@@ -459,16 +459,17 @@ action ()
 
 init_pki ()
 {
+	newline 2
 	STEP_NAME="init-pki"
 	action
+	LIVE_PKI=1
 }
 
 build_ca ()
 {
+	newline 2
 	STEP_NAME="build-ca nopass"
-	export EASYRSA_REQ_CN="penelope"
 	action
-	unset EASYRSA_REQ_CN
 }
 
 show_ca ()
@@ -482,7 +483,7 @@ show_ca ()
 
 build_full ()
 {
-	newline 1
+	newline 2
 	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
 	action
 	secure_key
@@ -490,7 +491,7 @@ build_full ()
 
 build_san_full ()
 {
-	newline 1
+	newline 2
 	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
 	action
 	secure_key
@@ -498,11 +499,11 @@ build_san_full ()
 
 import_req ()
 {
+	newline 2
 	REQ_file="$TEMP_DIR/pki-req-$EASYRSA_ALGO/reqs/$REQ_name.req"
 
 	# Note: easyrsa still appears to work in batch mode for this action ?
 	export EASYRSA_BATCH=0
-	newline 1
 	STEP_NAME="import-req"
 	action "$REQ_file" "$REQ_name"
 	export EASYRSA_BATCH=1
@@ -510,10 +511,10 @@ import_req ()
 
 show_req ()
 {
+	newline
 	STEP_NAME="show-req $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
-	newline
 	unset SHOW_CERT_ONLY
 }
 
@@ -522,22 +523,21 @@ sign_req ()
 	newline 1
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
-	secure_key
 }
 
 show_cert ()
 {
+	newline
 	STEP_NAME="show-cert $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
-	newline
 	unset SHOW_CERT_ONLY
 }
 
 renew_cert ()
 {
-	wait_sec
 	newline 1
+	wait_sec
 	# This will probably need an inline option
 	STEP_NAME="renew $REQ_name nopass"
 	action
@@ -546,16 +546,18 @@ renew_cert ()
 
 revoke_cert ()
 {
+	newline 1
 	STEP_NAME="revoke $REQ_name"
 	CAT_THIS="$EASYRSA_PKI/index.txt"
-	verb_off
+	#verb_off
 	action
-	verb_on
+	#verb_on
+	secure_key
 }
 
 gen_crl ()
 {
-	newline 1
+	newline 2
 	STEP_NAME="gen-crl"
 	action
 	CAT_THIS="$EASYRSA_PKI/crl.pem"
@@ -575,7 +577,7 @@ cat_file ()
 
 create_pki ()
 {
-	newline 1
+	newline 3
 	vverbose "$STAGE_NAME"
 
 	restore_req
@@ -588,9 +590,11 @@ create_pki ()
 		init_pki
 	fi
 	export EASYRSA_BATCH=1
+	LIVE_PKI=1
 
 	LOG_INDENT="$LOG_INDENT_1"
 
+	export EASYRSA_REQ_CN="penelope"
 	build_ca
 	show_ca
 
@@ -668,51 +672,54 @@ create_pki ()
 	REQ_name="maximilian"
 	import_req
 	sign_req
+	show_ca
 
-	secure_ca
+	unset LIVE_PKI
+	secure_key
 
 	# goto sub-ca maximilian
 	LOG_INDENT=""
 	move_ca
-	show_ca
+	LIVE_PKI=1
 	LOG_INDENT="$LOG_INDENT_2"
 
-	REQ_type="server"
-	REQ_name="specter"
-	sign_req
-	show_cert
-	revoke_cert
+		REQ_type="server"
+		REQ_name="specter"
+		sign_req
+		show_cert
+		revoke_cert
 
-	REQ_type="serverClient"
-	REQ_name="heartbleed"
-	sign_req
-	show_cert
-	revoke_cert
+		REQ_type="serverClient"
+		REQ_name="heartbleed"
+		sign_req
+		show_cert
+		revoke_cert
 
-	REQ_type="serverClient"
-	REQ_name="VORACLE"
-	sign_req
-	show_cert
-	revoke_cert
+		REQ_type="serverClient"
+		REQ_name="VORACLE"
+		sign_req
+		show_cert
+		revoke_cert
 
-	REQ_type="client"
-	REQ_name="meltdown"
-	sign_req
-	show_cert
-	revoke_cert
+		REQ_type="client"
+		REQ_name="meltdown"
+		sign_req
+		show_cert
+		revoke_cert
 
-	gen_crl
+		gen_crl
 
-	secure_ca
+	unset LIVE_PKI
+	secure_key
 
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
 	unset LOG_INDENT
 
-	newline 1
+	newline 2
 	vcompleted "$STAGE_NAME (Errors: $S_ERRORS)"
 	S_ERRORS=0
-	newline 1
+	newline 3
 }
 
 
@@ -746,17 +753,19 @@ create_pki ()
 
 	setup
 
-	STAGE_NAME="System ssl"
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
 		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
 		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
+			STAGE_NAME="System ssl $EASYRSA_ALGO"
 			NEW_PKI="pki-sys-ssl-$EASYRSA_ALGO"
 			create_pki
 			unset EASYRSA_ALGO
 		done
+		unset NEW_PKI
+		unset STAGE_NAME
 		unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
