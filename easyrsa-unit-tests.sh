@@ -138,13 +138,8 @@ die ()
 {
 	print
 	print "FATAL ERROR! Command failed -> ${1:-unknown error}"
-	print
-	print "EasyRSA log:"
-	[ -f  "$ACT_OUT" ] && cat "$ACT_OUT"
-	print
-	print "Error message:"
-	[ -f "$ACT_ERR"  ] && cat "$ACT_ERR"
-
+	[ -f "$ACT_OUT" ] && print && print "EasyRSA log:" && cat "$ACT_OUT"
+	[ -f "$ACT_ERR" ] && print && print "Error message:" && cat "$ACT_ERR"
 	[ $((DIE)) -eq 1 ] && failed 1
 	warn "Ignored"
 	S_ERRORS=$((S_ERRORS + 1))
@@ -240,7 +235,7 @@ verb_off ()
 easyrsa_unit_test_version ()
 {
 	newline 3
-	ERSA_UTEST_VERSION="2.2"
+	ERSA_UTEST_VERSION="2.2.1"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 }
@@ -302,7 +297,8 @@ setup ()
 		do
 			export EASYRSA_ALGO="$i"
 			NEW_PKI="pki-req-$EASYRSA_ALGO"
-			create_req || die "$STAGE_NAME create_req $EASYRSA_ALGO"
+			create_req 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STAGE_NAME create_req $EASYRSA_ALGO"
+			rm -f "$ACT_ERR" "$ACT_OUT"
 			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
 			unset EASYRSA_ALGO
 			unset NEW_PKI
@@ -417,8 +413,11 @@ restore_req ()
 {
 	STEP_NAME="Restore sample $EASYRSA_ALGO requests"
 	rm -rf "$TEMP_DIR/pki-req-$EASYRSA_ALGO"
+	# ubuntu: cp -R, -r, --recursive (copy directories recursively)
 	# Windows: cp.exe -R --recursive (-r copy recursively, non-directories as files)
-	cp -f --recursive "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" >/dev/null 2>&1 || die "$STEP_NAME"
+	# xcode10.1: cp -R only, does not support --recursive
+	cp -f  -R "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+	rm -f "$ACT_ERR" "$ACT_OUT"
 	vcompleted "$STEP_NAME"
 }
 
@@ -427,7 +426,8 @@ move_ca ()
 	newline 3
 	STEP_NAME="Send $EASYRSA_ALGO sub-ca maximilian to origin"
 	verbose "$STEP_NAME"
-	mv "$EASYRSA_PKI/issued/$REQ_name.crt" "$TEMP_DIR/pki-req-$EASYRSA_ALGO/ca.crt" >/dev/null 2>&1 || die "$STEP_NAME"
+	mv "$EASYRSA_PKI/issued/$REQ_name.crt" "$TEMP_DIR/pki-req-$EASYRSA_ALGO/ca.crt" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+	rm -f "$ACT_ERR" "$ACT_OUT"
 	completed
 	vcompleted "$STEP_NAME"
 
@@ -454,6 +454,7 @@ action ()
 		# shellcheck disable=SC2086
 		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" || die "$STEP_NAME"
 	fi
+	rm -f "$ACT_ERR" "$ACT_OUT"
 	completed
 }
 
