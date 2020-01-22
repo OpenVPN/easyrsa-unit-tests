@@ -413,8 +413,10 @@ restore_req ()
 {
 	STEP_NAME="Restore sample $EASYRSA_ALGO requests"
 	rm -rf "$TEMP_DIR/pki-req-$EASYRSA_ALGO"
+	# ubuntu: cp -R, -r, --recursive (copy directories recursively)
 	# Windows: cp.exe -R --recursive (-r copy recursively, non-directories as files)
-	cp -f --recursive "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+	# xcode10.1: cp -R only, does not support --recursive
+	cp -f  -R "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
 	rm -f "$ACT_ERR" "$ACT_OUT"
 	vcompleted "$STEP_NAME"
 }
