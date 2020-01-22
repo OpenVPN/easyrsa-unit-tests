@@ -235,7 +235,7 @@ verb_off ()
 easyrsa_unit_test_version ()
 {
 	newline 3
-	ERSA_UTEST_VERSION="2.2.2"
+	ERSA_UTEST_VERSION="2.2.3"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
@@ -299,8 +299,7 @@ setup ()
 		do
 			export EASYRSA_ALGO="$i"
 			NEW_PKI="pki-req-$EASYRSA_ALGO"
-			create_req 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STAGE_NAME create_req $EASYRSA_ALGO"
-			rm -f "$ACT_ERR" "$ACT_OUT"
+			create_req
 			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
 			unset EASYRSA_ALGO
 			unset NEW_PKI
