@@ -237,7 +237,7 @@ easyrsa_unit_test_version ()
 {
 	newline 3
 
-	ERSA_UTEST_VERSION="2.2.3"
+	ERSA_UTEST_VERSION="2.2.4"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
@@ -392,24 +392,16 @@ create_req ()
 	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/maximilian.req"
 
 	export EASYRSA_REQ_CN="specter"
-	STEP_NAME="gen-req $EASYRSA_REQ_CN nopass"
-	action
-	secure_key
+	gen_req
 
 	export EASYRSA_REQ_CN="meltdown"
-	STEP_NAME="gen-req $EASYRSA_REQ_CN nopass"
-	action
-	secure_key
+	gen_req
 
 	export EASYRSA_REQ_CN="heartbleed"
-	STEP_NAME="gen-req $EASYRSA_REQ_CN nopass"
-	action
-	secure_key
+	gen_req
 
 	export EASYRSA_REQ_CN="VORACLE"
-	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 gen-req $EASYRSA_REQ_CN nopass"
-	action
-	secure_key
+	gen_req "--subject-alt-name=DNS:www.example.org,IP:0.0.0.0"
 
 	unset EASYRSA_REQ_CN
 	unset EASYRSA_BATCH
@@ -505,6 +497,14 @@ build_san_full ()
 	secure_key
 }
 
+gen_req ()
+{
+	newline 1
+	STEP_NAME="$1 gen-req $REQ_type $EASYRSA_REQ_CN nopass"
+	action
+	secure_key
+}
+
 import_req ()
 {
 	newline 2
@@ -531,6 +531,7 @@ sign_req ()
 	newline 1
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
+	secure_key
 }
 
 show_cert ()
