@@ -681,7 +681,6 @@ create_pki ()
 	REQ_name="maximilian"
 	import_req
 	sign_req
-	show_ca
 
 	unset LIVE_PKI
 	secure_key
@@ -689,6 +688,7 @@ create_pki ()
 	# goto sub-ca maximilian
 	LOG_INDENT=""
 	move_ca
+	show_ca
 	LIVE_PKI=1
 	LOG_INDENT="$LOG_INDENT_2"
 
