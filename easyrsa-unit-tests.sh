@@ -444,9 +444,9 @@ action ()
 	ACT_OPTS="$2"
 	verbose "$EASYRSA_ALGO: $STEP_NAME $ACT_OPTS"
 	vverbose "$EASYRSA_ALGO: $STEP_NAME $ACT_OPTS"
+	newline
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
-		newline
 		# shellcheck disable=SC2086
 		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
 	else
@@ -576,11 +576,11 @@ gen_crl ()
 cat_file ()
 {
 	[ $((ERSA_OUT)) -eq 1 ] || return 0
-	newline
-	vverbose "cat $CAT_THIS"
+	#newline
+	#vverbose "cat $CAT_THIS"
 	newline
 	[ -f "$CAT_THIS" ] || die "cat $CAT_THIS"
-	[ $((VVERBOSE)) -eq 1 ] && [ -f "$CAT_THIS" ] && cat "$CAT_THIS"
+	[ $((VVERBOSE)) -eq 1 ] && cat "$CAT_THIS"
 	newline
 }
 
