@@ -60,7 +60,7 @@ init ()
 	DIE="${DIE:-1}"
 	S_ERRORS=0
 	T_ERRORS=0
-	DELAY=${DELAY:-1}
+	WAIT_DELAY=${WAIT_DELAY:-1}
 	VERBOSE="${VERBOSE:-0}"
 	VVERBOSE="${VVERBOSE:-0}"
 	LOG_INDENT_1=" - "
@@ -159,7 +159,7 @@ newline ()
 	elif [ "$1" = "1" ]; then
 		print "|| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 	else
-		[ $((ERSA_OUT)) -ne 1 ] || print
+		[ $((ERSA_OUT)) -ne 1 ] || print "||"
 	fi
 }
 
@@ -171,7 +171,10 @@ notice ()
 
 filter_msg ()
 {
-	MSG="$(print "$1" | sed -e s/--.*,//g -e s/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]\ //g -e s\`/.*/\`\`g -e s/\ nopass//g -e s/\ inline//g)"
+	MSG="$(	print "$1" | \
+		sed 	-e s/\ $// -e s/--.*,// -e s/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]\ // \
+			-e s\`/.*/\`\` -e s/\ nopass// -e s/\ inline// \
+		)"
 }
 
 # verbose and completed work together
@@ -250,10 +253,10 @@ easyrsa_unit_test_version ()
 
 wait_sec ()
 {
+	[ $((WAIT_DELAY)) -eq 0 ] && return 0
 	verbose "Wait"
 	vverbose "Wait"
-	( sleep "$DELAY" 2>/dev/null ) || \
-	{ ( ping -n 1 127.0.0.1 >/dev/null 2>&1 ) && ping -n "$DELAY" 127.0.0.1 >/dev/null 2>&1; }
+	{ sleep "$WAIT_DELAY" 2>/dev/null; } || echo "* Windows is slow enough *"
 	completed
 }
 
@@ -344,7 +347,7 @@ secure_key ()
 {
 	rm -f "$EASYRSA_PKI/$EASYRSA_SP/$REQ_name.key"
 	rm -f "$EASYRSA_PKI/$EASYRSA_SP/$EASYRSA_REQ_CN.key"
-	[ $((LIVE_PKI)) -eq 0 ] && rm -f "$EASYRSA_PKI/$EASYRSA_SP/ca.key"
+	[ $((LIVE_PKI)) -eq 1 ] || rm -f "$EASYRSA_PKI/$EASYRSA_SP/ca.key"
 	rm -f "$EASYRSA_PKI/$REQ_name.creds"
 }
 
@@ -387,6 +390,7 @@ create_req ()
 
 	export EASYRSA_BATCH=1
 	export EASYRSA_REQ_CN="maximilian"
+	LIVE_PKI=1
 	STEP_NAME="build-ca nopass subca"
 	action
 	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/maximilian.req"
@@ -403,6 +407,7 @@ create_req ()
 	export EASYRSA_REQ_CN="VORACLE"
 	gen_req "--subject-alt-name=DNS:www.example.org,IP:0.0.0.0"
 
+	unset LIVE_PKI
 	unset EASYRSA_REQ_CN
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
@@ -449,12 +454,21 @@ action ()
 	then
 		# shellcheck disable=SC2086
 		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+		rm -f "$ACT_ERR" "$ACT_OUT"
 	else
 		# shellcheck disable=SC2086
 		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" || die "$STEP_NAME"
 	fi
-	rm -f "$ACT_ERR" "$ACT_OUT"
 	completed
+}
+
+execute_node ()
+{
+	[ $LIVE_PKI ] || return 0
+	show_cert
+	renew_cert
+	show_cert
+	revoke_cert
 }
 
 init_pki ()
@@ -462,7 +476,6 @@ init_pki ()
 	newline 2
 	STEP_NAME="init-pki"
 	action
-	LIVE_PKI=1
 }
 
 build_ca ()
@@ -487,6 +500,7 @@ build_full ()
 	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
 	action
 	secure_key
+	execute_node
 }
 
 build_san_full ()
@@ -495,6 +509,7 @@ build_san_full ()
 	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
 	action
 	secure_key
+	execute_node
 }
 
 gen_req ()
@@ -532,6 +547,7 @@ sign_req ()
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
 	secure_key
+	execute_node
 }
 
 show_cert ()
@@ -610,116 +626,79 @@ create_pki ()
 	REQ_type="server"
 	REQ_name="s01"
 	build_full
-	show_cert
-	renew_cert
-	show_cert
-	revoke_cert
 
 	REQ_type="server"
 	REQ_name="s02"
 	build_san_full
-	show_cert
-	renew_cert
-	show_cert
-	revoke_cert
 
 	REQ_type="serverClient"
 	REQ_name="s03"
 	build_full
-	show_cert
-	renew_cert
-	show_cert
-	revoke_cert
 
 	REQ_type="serverClient"
 	REQ_name="s04"
 	build_san_full
-	show_cert
-	renew_cert
-	show_cert
-	revoke_cert
 
 	REQ_type="client"
 	REQ_name="c01"
 	build_full
-	show_cert
-	renew_cert
-	show_cert
-	revoke_cert
 
 	REQ_type="server"
 	REQ_name="specter"
 	import_req
 	sign_req
-	show_cert
-	revoke_cert
 
 	REQ_type="serverClient"
 	REQ_name="heartbleed"
 	import_req
 	sign_req
-	show_cert
-	revoke_cert
 
 	REQ_type="serverClient"
 	REQ_name="VORACLE"
 	import_req
 	sign_req
-	show_cert
-	revoke_cert
 
 	REQ_type="client"
 	REQ_name="meltdown"
 	import_req
 	sign_req
-	show_cert
-	revoke_cert
 
 	gen_crl
 
+	unset LIVE_PKI
 	REQ_type="ca"
 	REQ_name="maximilian"
 	import_req
 	sign_req
-
-	unset LIVE_PKI
 	secure_key
 
 	# goto sub-ca maximilian
 	LOG_INDENT=""
 	move_ca
-	show_ca
-	LIVE_PKI=1
 	LOG_INDENT="$LOG_INDENT_2"
+		LIVE_PKI=1
+		show_ca
 
 		REQ_type="server"
 		REQ_name="specter"
 		sign_req
-		show_cert
-		revoke_cert
 
 		REQ_type="serverClient"
 		REQ_name="heartbleed"
 		sign_req
-		show_cert
-		revoke_cert
 
 		REQ_type="serverClient"
 		REQ_name="VORACLE"
 		sign_req
-		show_cert
-		revoke_cert
 
 		REQ_type="client"
 		REQ_name="meltdown"
 		sign_req
-		show_cert
-		revoke_cert
 
 		gen_crl
 
-	unset LIVE_PKI
-	secure_key
+		unset LIVE_PKI
+		secure_key
 
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
@@ -740,6 +719,8 @@ create_pki ()
 		-u|-h|--help)	usage ;;
 		-v)		VERBOSE=1 ;;
 		-vv)		VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
+		-t)		WAIT_DELAY=0; VERBOSE=1 ;;
+		-tv)		WAIT_DELAY=0; VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-b)		DIE=0; BROKEN_PKI=1; SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-0}";
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-f)		DIE=0; CUST_SSL_ENABLE=1; OPENSSL_ENABLE=1; LIBRESSL_ENABLE=1;
