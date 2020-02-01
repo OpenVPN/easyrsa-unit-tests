@@ -240,7 +240,7 @@ easyrsa_unit_test_version ()
 {
 	newline 3
 
-	ERSA_UTEST_VERSION="2.2.4"
+	ERSA_UTEST_VERSION="2.2.5"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
@@ -731,6 +731,7 @@ create_pki ()
 
 	init
 	easyrsa_unit_test_version
+	exit 9
 
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
