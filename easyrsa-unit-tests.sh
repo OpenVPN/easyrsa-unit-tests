@@ -76,7 +76,7 @@ init ()
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
-	SYS_SSL_LIBB="openssl"
+	SYS_SSL_LIBB="${SYS_SSL_LIBB:-openssl}"
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	EASYRSA_SP="${EASYRSA_SP:-private}"
@@ -713,7 +713,7 @@ create_pki ()
 
 ######################################
 
-	for i in $1
+	for i in $@
 	do
 		case $i in
 		-u|-h|--help)	usage ;;
@@ -731,7 +731,6 @@ create_pki ()
 
 	init
 	easyrsa_unit_test_version
-	exit 9
 
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
