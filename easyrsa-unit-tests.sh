@@ -72,7 +72,7 @@ init ()
 	ACT_OUT="./.act.out"
 	ACT_ERR="./.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
-	TEST_ALGOS="rsa ec"
+	TEST_ALGOS="rsa ec ed"
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
@@ -308,9 +308,10 @@ setup ()
 		do
 			export EASYRSA_ALGO="$i"
 			NEW_PKI="pki-req-$EASYRSA_ALGO"
+			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			create_req
 			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
-			unset EASYRSA_ALGO
+			unset EASYRSA_ALGO EASYRSA_CURVE
 			unset NEW_PKI
 		done
 		verb_on
@@ -745,14 +746,15 @@ create_pki ()
 
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
-		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
+		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
 		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
+			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			STAGE_NAME="System ssl $EASYRSA_ALGO"
 			NEW_PKI="pki-sys-ssl-$EASYRSA_ALGO"
 			create_pki
-			unset EASYRSA_ALGO
+			unset EASYRSA_ALGO EASYRSA_CURVE
 		done
 		unset NEW_PKI
 		unset STAGE_NAME
