@@ -42,7 +42,7 @@ success 0
 
 init ()
 {
-	ROOT_DIR="$(pwd)"
+	ROOT_DIR="$PWD"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
 	TEMP_DIR="$WORK_DIR/unit-tests-temp"
 	X509_DIR="$WORK_DIR/x509-types"
@@ -60,7 +60,7 @@ init ()
 	DIE="${DIE:-1}"
 	S_ERRORS=0
 	T_ERRORS=0
-	WAIT_DELAY=${WAIT_DELAY:-1}
+	WAIT_DELAY="${WAIT_DELAY:-0}"
 	VERBOSE="${VERBOSE:-0}"
 	VVERBOSE="${VVERBOSE:-0}"
 	LOG_INDENT_1=" - "
@@ -76,7 +76,7 @@ init ()
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
-	SYS_SSL_LIBB="openssl"
+	SYS_SSL_LIBB="${SYS_SSL_LIBB:-openssl}"
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	EASYRSA_SP="${EASYRSA_SP:-private}"
