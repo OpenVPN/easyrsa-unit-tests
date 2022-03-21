@@ -42,7 +42,7 @@ success 0
 
 init ()
 {
-	ROOT_DIR="$(pwd)"
+	ROOT_DIR="$PWD"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
 	TEMP_DIR="$WORK_DIR/unit-tests-temp"
 	X509_DIR="$WORK_DIR/x509-types"
@@ -60,7 +60,7 @@ init ()
 	DIE="${DIE:-1}"
 	S_ERRORS=0
 	T_ERRORS=0
-	WAIT_DELAY=${WAIT_DELAY:-1}
+	WAIT_DELAY="${WAIT_DELAY:-0}"
 	VERBOSE="${VERBOSE:-0}"
 	VVERBOSE="${VVERBOSE:-0}"
 	LOG_INDENT_1=" - "
@@ -72,11 +72,11 @@ init ()
 	ACT_OUT="./.act.out"
 	ACT_ERR="./.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
-	TEST_ALGOS="rsa ec"
+	TEST_ALGOS="rsa ec ed"
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
-	SYS_SSL_LIBB="openssl"
+	SYS_SSL_LIBB="${SYS_SSL_LIBB:-openssl}"
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	EASYRSA_SP="${EASYRSA_SP:-private}"
@@ -240,7 +240,7 @@ easyrsa_unit_test_version ()
 {
 	newline 3
 
-	ERSA_UTEST_VERSION="2.2.4"
+	ERSA_UTEST_VERSION="2.2.5"
 	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
@@ -308,9 +308,10 @@ setup ()
 		do
 			export EASYRSA_ALGO="$i"
 			NEW_PKI="pki-req-$EASYRSA_ALGO"
+			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			create_req
 			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
-			unset EASYRSA_ALGO
+			unset EASYRSA_ALGO EASYRSA_CURVE
 			unset NEW_PKI
 		done
 		verb_on
@@ -745,14 +746,15 @@ create_pki ()
 
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
-		export EASYRSA_OPENSSL="$SYS_SSL_LIBB"
+		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
 		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
+			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			STAGE_NAME="System ssl $EASYRSA_ALGO"
 			NEW_PKI="pki-sys-ssl-$EASYRSA_ALGO"
 			create_pki
-			unset EASYRSA_ALGO
+			unset EASYRSA_ALGO EASYRSA_CURVE
 		done
 		unset NEW_PKI
 		unset STAGE_NAME
