@@ -609,6 +609,7 @@ create_pki ()
 	restore_req
 
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
+	print "* EASYRSA_PKI: $EASYRSA_PKI"
 	if [ "$EASYRSA_PKI" = "$TEMP_DIR/pki-empty" ] || [ "$EASYRSA_PKI" = "$TEMP_DIR/pki-error" ]
 	then
 		vverbose "OMITTING init-pki"
