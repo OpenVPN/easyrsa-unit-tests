@@ -44,7 +44,7 @@ init ()
 {
 	ROOT_DIR="$PWD"
 	WORK_DIR="$ROOT_DIR/easyrsa3"
-	TEMP_DIR="$WORK_DIR/unit-tests-temp"
+	TEMP_DIR="${WORK_DIR}/unit tests"
 	X509_DIR="$WORK_DIR/x509-types"
 	[ -d "$X509_DIR" ] && X509_SAVE=1
 	IGNORE_TEMP=${IGNORE_TEMP:-0}
