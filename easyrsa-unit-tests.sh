@@ -72,6 +72,7 @@ init ()
 	ACT_OUT="./.act.out"
 	ACT_ERR="./.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
+	print "ERSA_BIN: $ERSA_BIN"
 	TEST_ALGOS="rsa ec ed"
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
