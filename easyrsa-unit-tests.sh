@@ -73,6 +73,7 @@ init ()
 	ACT_ERR="./.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
 	print "ERSA_BIN: $ERSA_BIN"
+
 	TEST_ALGOS="rsa ec ed"
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
@@ -170,11 +171,16 @@ notice ()
 	print "$1"
 }
 
+# shellcheck disable=SC2016
 filter_msg ()
 {
-	MSG="$(	print "$1" | \
-		sed 	-e s/\ $// -e s/--.*,// -e s/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]\ // \
-			-e s\`/.*/\`\` -e s/\ nopass// -e s/\ inline// \
+	MSG="$(	print "$1" | sed \
+		-e 's/ $//' \
+		-e 's/--subject-alt-name.*,//' \
+		-e 's/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]\ //' \
+		-e 's`/.*/``' \
+		-e 's/ nopass//' \
+		-e 's/ inline//' \
 		)"
 }
 
@@ -311,7 +317,9 @@ setup ()
 			NEW_PKI="pki-req-$EASYRSA_ALGO"
 			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			create_req
-			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
+			mv "$TEMP_DIR/$NEW_PKI" "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" || \
+				die "$STAGE_NAME mv $TEMP_DIR/$NEW_PKI"
+
 			unset EASYRSA_ALGO EASYRSA_CURVE
 			unset NEW_PKI
 		done
@@ -449,17 +457,21 @@ action ()
 	# Required to support $PATH with spaces (import-req)
 	ACT_FILE_NAME="$1"
 	ACT_OPTS="$2"
-	verbose "$EASYRSA_ALGO: $STEP_NAME $ACT_OPTS"
-	vverbose "$EASYRSA_ALGO: $STEP_NAME $ACT_OPTS"
+
+	verbose "$EASYRSA_ALGO: ${ACT_GLOBAL_OPTS:+"$ACT_GLOBAL_OPTS "}$STEP_NAME $ACT_OPTS"
+	vverbose "$EASYRSA_ALGO: ${ACT_GLOBAL_OPTS:+"$ACT_GLOBAL_OPTS "}$STEP_NAME $ACT_OPTS"
 	newline
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
 		# shellcheck disable=SC2086
-		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
+			2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+
 		rm -f "$ACT_ERR" "$ACT_OUT"
 	else
 		# shellcheck disable=SC2086
-		"$ERSA_BIN" $STEP_NAME "$ACT_FILE_NAME" "$ACT_OPTS" || die "$STEP_NAME"
+		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
+			|| die "$STEP_NAME"
 	fi
 	completed
 }
@@ -716,18 +728,18 @@ create_pki ()
 
 ######################################
 
-	for i in $1
+	for i in "$@"
 	do
 		case $i in
 		-u|-h|--help)	usage ;;
 		-v)		VERBOSE=1 ;;
-		-vv)		VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
+		-vv)	VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-t)		WAIT_DELAY=0; VERBOSE=1 ;;
-		-tv)		WAIT_DELAY=0; VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-b)		DIE=0; BROKEN_PKI=1; SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-0}";
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-f)		DIE=0; CUST_SSL_ENABLE=1; OPENSSL_ENABLE=1; LIBRESSL_ENABLE=1;
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
+		-x)		export ACT_GLOBAL_OPTS="--x509-alt" ;;
 		*)		print "Unknown option: $i"; failed 1 ;;
 		esac
 	done
