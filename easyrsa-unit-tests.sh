@@ -287,7 +287,7 @@ setup ()
 		# FOUND_VARS=`where is vars.example`
 		#[ -f "$FOUND_VARS/vars.example" ] || dir "File missing: $FOUND_VARS/vars.example"
 		#cp "$FOUND_VARS/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
-		create_vars >> "$WORK_DIR/vars" || die "create_vars"
+		create_vars > "$WORK_DIR/vars" || die "create_vars"
 		vcompleted "$STEP_NAME"
 	else
 		vdisabled "$STEP_NAME"
@@ -628,6 +628,7 @@ create_pki ()
 		vverbose "OMITTING init-pki"
 	else
 		init_pki
+		cp "$WORK_DIR/vars" "$EASYRSA_PKI/vars" || die "New vars"
 	fi
 	export EASYRSA_BATCH=1
 	LIVE_PKI=1
