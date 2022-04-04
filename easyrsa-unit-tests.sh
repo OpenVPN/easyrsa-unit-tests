@@ -42,22 +42,11 @@ success 0
 
 init ()
 {
-	ROOT_DIR="$PWD"
-	WORK_DIR="$ROOT_DIR/easyrsa3"
-	TEMP_DIR="${WORK_DIR}/unit tests"
-	X509_DIR="$WORK_DIR/x509-types"
-	[ -d "$X509_DIR" ] && X509_SAVE=1
-	IGNORE_TEMP=${IGNORE_TEMP:-0}
-
-	if [ -d "$TEMP_DIR" ] && [ $((IGNORE_TEMP)) -eq 0 ]
-	then
-		print "Aborted! Temporary directory exists: $TEMP_DIR"
-		failed 1
-	else
-		[ $((IGNORE_TEMP)) -eq 1 ] && rm -rf "$TEMP_DIR" && warn "*** Deleted $TEMP_DIR ***"
-	fi
-
 	DIE="${DIE:-1}"
+	ROOT_DIR="$PWD"
+	WORK_DIR="${ROOT_DIR}/easyrsa3"
+	TEMP_DIR="${WORK_DIR}/unit tests"
+	X509_DIR="${WORK_DIR}/x509-types"
 	S_ERRORS=0
 	T_ERRORS=0
 	WAIT_DELAY="${WAIT_DELAY:-0}"
@@ -66,11 +55,22 @@ init ()
 	LOG_INDENT_1=" - "
 	LOG_INDENT_2="    - "
 
+	if [ -d "$TEMP_DIR" ]; then
+		if [ -z "$IGNORE_TEMP" ]; then
+			SAVE_PKI=1
+			die "Aborted! Temporary directory exists: $TEMP_DIR"
+		fi
+		rm -rf "$TEMP_DIR" || {
+			SAVE_PKI=1
+			die "Failed to clean Temporary directory: $TEMP_DIR"
+			}
+	fi
+
 	SHOW_CERT="${SHOW_CERT:-0}"
-	SAVE_PKI="${SAVE_PKI:-0}"
+	#SAVE_PKI="${SAVE_PKI:-0}"
 	ERSA_OUT="${ERSA_OUT:-0}"
-	ACT_OUT="./.act.out"
-	ACT_ERR="./.act.err"
+	ACT_OUT="$TEMP_DIR/.act.out"
+	ACT_ERR="$TEMP_DIR/.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
 	print "ERSA_BIN: $ERSA_BIN"
 
@@ -98,15 +98,6 @@ init ()
 	export LIBRESSL_VERSION="${LIBRESSL_VERSION:-2.8.3}"
 	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
 
-	# Register cleanup on EXIT
-	#trap "exited 0" 0
-	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
-	# explicitly exit to signal EXIT (non-bash shells)
-	trap "failed 1" 1
-	trap "failed 2" 2
-	trap "failed 3" 3
-	trap "failed 6" 6
-	trap "failed 14" 15
 }
 
 success ()
@@ -117,13 +108,12 @@ success ()
 
 failed ()
 {
-	ERROR_COUNT=$((ERROR_COUNT+1))
-	[ $((ERROR_COUNT)) -gt 1 ] && echo "TOAST" && exit 9
+	ERROR_COUNT="$((ERROR_COUNT+1))"
 	ERROR_CODE="$1"
-	[ $((DIE)) -eq 1 ] && cleanup
+	cleanup || print "cleanup failed!"
 	print
-	print "ERROR: exit $1"
-	exit $((ERROR_CODE))
+	print "ERROR: exit $ERROR_CODE"
+	exit "$ERROR_CODE"
 }
 
 
@@ -226,6 +216,7 @@ vvverbose ()
 
 verb_on ()
 {
+	return
 	unset SILENCE_WARN
 	VERBOSE="$SAVE_VERB"
 	VVERBOSE="$SAVE_VVERB"
@@ -234,6 +225,7 @@ verb_on ()
 
 verb_off ()
 {
+	return
 	SILENCE_WARN=1
 	SAVE_VERB="$VERBOSE"
 	VERBOSE=0
@@ -273,12 +265,13 @@ setup ()
 	verbose "Setup"
 	vverbose "Setup"
 
+	# dir: ./easyrsa3
 	cd "$WORK_DIR" || die "cd $WORK_DIR"
-	vvverbose "Working dir: $WORK_DIR"
+	vverbose "Working dir: $WORK_DIR"
 
-	verb_off
-	destroy_data
-	verb_on
+	# dir: ./easyrsa3/unit test
+	mkdir -p "$TEMP_DIR" || die "Cannot mkdir: -p $TEMP_DIR"
+	vverbose "Temp dir: $TEMP_DIR"
 
 	STEP_NAME="vars"
 	if [ $((CUSTOM_VARS)) -eq 1 ]
@@ -287,7 +280,7 @@ setup ()
 		# FOUND_VARS=`where is vars.example`
 		#[ -f "$FOUND_VARS/vars.example" ] || dir "File missing: $FOUND_VARS/vars.example"
 		#cp "$FOUND_VARS/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
-		create_vars > "$WORK_DIR/vars.utest" || die "create_vars"
+		create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
 		vcompleted "$STEP_NAME"
 	else
 		vdisabled "$STEP_NAME"
@@ -332,27 +325,6 @@ setup ()
 	completed
 }
 
-destroy_data ()
-{
-	LIVE_PKI=0
-	for i in pki-bkp-rsa pki-bkp-ec; do
-		EASYRSA_PKI="$TEMP_DIR/$i"
-		secure_key
-	done
-
-	rm -f "$ACT_OUT" "$ACT_ERR"
-
-	if [ $((SAVE_PKI)) -ne 1 ]
-	then
-		rm -rf "$TEMP_DIR"
-		[ "$X509_SAVE" ] || rm -rf "$X509_DIR"
-		rm -f "$WORK_DIR/vars"
-		if [ -f "$YACF.orig" ]; then mv -f "$YACF.orig" "$YACF"; fi
-	else
-		warn "*** PKI and vars have not been deleted ***"
-	fi
-}
-
 secure_key ()
 {
 	rm -f "$EASYRSA_PKI/$EASYRSA_SP/$REQ_name.key"
@@ -363,7 +335,14 @@ secure_key ()
 
 cleanup ()
 {
-	destroy_data
+	print
+	print "Cleanup.."
+	if [ -z "$SAVE_PKI" ]; then
+		print "Remove temp dir: $TEMP_DIR"
+		rm -rf "$TEMP_DIR"
+	else
+		print "Saving temp dir: SAVE_PKI=$SAVE_PKI"
+	fi
 	cd ..
 }
 
@@ -396,8 +375,9 @@ create_custom_opts ()
 create_req ()
 {
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
+
 	init_pki
-	cp "$WORK_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
+	cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
 
 	export EASYRSA_BATCH=1
 	export EASYRSA_REQ_CN="maximilian"
@@ -629,7 +609,7 @@ create_pki ()
 		vverbose "OMITTING init-pki"
 	else
 		init_pki
-		cp "$WORK_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
+		cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
 	fi
 	export EASYRSA_BATCH=1
 	LIVE_PKI=1
@@ -730,6 +710,17 @@ create_pki ()
 
 ######################################
 
+	# Register cleanup on EXIT
+	#trap "exited 0" 0
+	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
+	# explicitly exit to signal EXIT (non-bash shells)
+	trap "failed 1" 1
+	trap "failed 2" 2
+	trap "failed 3" 3
+	trap "failed 6" 6
+	trap "failed 14" 15
+
+	# Options
 	for i in "$@"
 	do
 		case $i in
