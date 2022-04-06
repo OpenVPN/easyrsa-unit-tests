@@ -216,7 +216,6 @@ vvverbose ()
 
 verb_on ()
 {
-	return
 	unset SILENCE_WARN
 	VERBOSE="$SAVE_VERB"
 	VVERBOSE="$SAVE_VVERB"
@@ -225,7 +224,6 @@ verb_on ()
 
 verb_off ()
 {
-	return
 	SILENCE_WARN=1
 	SAVE_VERB="$VERBOSE"
 	VERBOSE=0
@@ -303,7 +301,7 @@ setup ()
 	STAGE_NAME="Sample requests"
 	if [ $((UNSIGNED_PKI)) -eq 1 ] && [ $((SYS_SSL_ENABLE + CUST_SSL_ENABLE + OPENSSL_ENABLE + LIBRESSL_ENABLE)) -ne 0 ]
 	then
-		verb_off
+		[ "$VVERBOSE" ] || verb_off
 		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
@@ -316,7 +314,7 @@ setup ()
 			unset EASYRSA_ALGO EASYRSA_CURVE
 			unset NEW_PKI
 		done
-		verb_on
+		[ "$VVERBOSE" ] || verb_on
 		vcompleted "$STAGE_NAME"
 	else
 		vdisabled "$STAGE_NAME"
