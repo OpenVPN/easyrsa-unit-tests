@@ -351,7 +351,7 @@ create_vars ()
 	print '# `'
 	print '# $'
 	print '# "'
-	print "# '"
+	print '# single-quote'
 	print '# #'
 	print '# & (Win)'
 	print ' set_var EASYRSA_REQ_COUNTRY   "00"'
