@@ -745,7 +745,6 @@ create_pki ()
 	done
 
 	init
-	easyrsa_unit_test_version
 
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
@@ -761,6 +760,7 @@ create_pki ()
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
 		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
+		easyrsa_unit_test_version
 		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
