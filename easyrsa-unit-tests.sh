@@ -72,7 +72,6 @@ init ()
 	ACT_OUT="$TEMP_DIR/.act.out"
 	ACT_ERR="$TEMP_DIR/.act.err"
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
-	print "ERSA_BIN: $ERSA_BIN"
 
 	TEST_ALGOS="rsa ec ed"
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
@@ -97,7 +96,6 @@ init ()
 	export LIBRESSL_BUILD="${LIBRESSL_BUILD:-0}"
 	export LIBRESSL_VERSION="${LIBRESSL_VERSION:-2.8.3}"
 	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
-
 }
 
 success ()
@@ -237,15 +235,17 @@ easyrsa_unit_test_version ()
 {
 	newline 3
 
-	ERSA_UTEST_VERSION="2.2.5"
-	notice "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
-	notice "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
-	vverbose "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
-	vverbose "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
+	ERSA_UTEST_VERSION="2.2.6"
+	print "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
+	print "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 
-	SSL_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
-	notice "SSL version: $SSL_LIB_VERSION"
-	vverbose "SSL version: $SSL_LIB_VERSION"
+	print "SYS_SSL_LIBB: $SYS_SSL_LIBB"
+	SYS_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
+	print "SYS_SSL_LIBB version: $SYS_LIB_VERSION"
+
+	print "EASYRSA_OPENSSL: $EASYRSA_OPENSSL"
+	ERSA_LIB_VERSION="$("$EASYRSA_OPENSSL" version)"
+	print "EASYRSA_OPENSSL version: $ERSA_LIB_VERSION"
 }
 
 wait_sec ()
@@ -265,11 +265,15 @@ setup ()
 
 	# dir: ./easyrsa3
 	cd "$WORK_DIR" || die "cd $WORK_DIR"
-	vverbose "Working dir: $WORK_DIR"
+	vvverbose "Working dir: $WORK_DIR"
 
 	# dir: ./easyrsa3/unit test
 	mkdir -p "$TEMP_DIR" || die "Cannot mkdir: -p $TEMP_DIR"
-	vverbose "Temp dir: $TEMP_DIR"
+	vvverbose "Temp dir: $TEMP_DIR"
+
+	# Don't use vverbose because it filters off the path,
+	# which is what we need to know
+	vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
 
 	STEP_NAME="vars"
 	if [ $((CUSTOM_VARS)) -eq 1 ]
@@ -440,15 +444,19 @@ action ()
 	verbose "$EASYRSA_ALGO: ${ACT_GLOBAL_OPTS:+"$ACT_GLOBAL_OPTS "}$STEP_NAME $ACT_OPTS"
 	vverbose "$EASYRSA_ALGO: ${ACT_GLOBAL_OPTS:+"$ACT_GLOBAL_OPTS "}$STEP_NAME $ACT_OPTS"
 	newline
+	vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
+	newline
+
+	# shellcheck disable=SC2086
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
-		# shellcheck disable=SC2086
+		vvverbose "***** $ERSA_BIN ${ACT_GLOBAL_OPTS} ${STEP_NAME} $ACT_FILE_NAME $ACT_OPTS"
 		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
 			2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
 
 		rm -f "$ACT_ERR" "$ACT_OUT"
 	else
-		# shellcheck disable=SC2086
+		vvverbose "***** $ERSA_BIN ${ACT_GLOBAL_OPTS} ${STEP_NAME} $ACT_FILE_NAME $ACT_OPTS"
 		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
 			|| die "$STEP_NAME"
 	fi
@@ -596,12 +604,13 @@ cat_file ()
 create_pki ()
 {
 	newline 3
-	vverbose "$STAGE_NAME"
+	vvverbose "$STAGE_NAME"
 
 	restore_req
 
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
-	print "* EASYRSA_PKI: $EASYRSA_PKI"
+	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
+
 	if [ "$EASYRSA_PKI" = "$TEMP_DIR/pki-empty" ] || [ "$EASYRSA_PKI" = "$TEMP_DIR/pki-error" ]
 	then
 		vverbose "OMITTING init-pki"
@@ -757,7 +766,7 @@ create_pki ()
 			export EASYRSA_ALGO="$i"
 			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			STAGE_NAME="System ssl $EASYRSA_ALGO"
-			NEW_PKI="pki-sys-ssl-$EASYRSA_ALGO"
+			NEW_PKI="pki-sys ssl-$EASYRSA_ALGO"
 			create_pki
 			unset EASYRSA_ALGO EASYRSA_CURVE
 		done
