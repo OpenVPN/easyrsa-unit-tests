@@ -46,7 +46,6 @@ init ()
 	ROOT_DIR="$PWD"
 	WORK_DIR="${ROOT_DIR}/easyrsa3"
 	TEMP_DIR="${WORK_DIR}/unit tests"
-	X509_DIR="${WORK_DIR}/x509-types"
 	S_ERRORS=0
 	T_ERRORS=0
 	WAIT_DELAY="${WAIT_DELAY:-0}"
@@ -79,7 +78,7 @@ init ()
 	BROKEN_PKI="${BROKEN_PKI:-0}"
 	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
 	EASYRSA_SP="${EASYRSA_SP:-private}"
-	ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-localhost}"
+	ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-default}"
 	export DEPS_DIR="$ROOT_DIR/testdeps"
 	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
@@ -233,8 +232,8 @@ easyrsa_unit_test_version ()
 {
 	newline 3
 
-	print "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
-	print "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
+	print "easyrsa-unit-tests.sh version: $ERSA_UTEST_VERSION"
+	print "easyrsa-unit-tests.sh source:  $ERSA_UTEST_CURL_TARGET"
 
 	#print "SYS_SSL_LIBB: $SYS_SSL_LIBB"
 	#SYS_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
