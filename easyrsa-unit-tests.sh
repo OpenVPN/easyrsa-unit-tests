@@ -263,6 +263,7 @@ setup ()
 	vverbose "Setup"
 
 	# dir: ./easyrsa3
+	mkdir -p "$WORK_DIR" ||  die "mkdir $WORK_DIR"
 	cd "$WORK_DIR" || die "cd $WORK_DIR"
 	vvverbose "Working dir: $WORK_DIR"
 
@@ -729,9 +730,9 @@ create_pki ()
 	ERSA_UTEST_VERSION="2.2.7"
 
 	# Options
-	for i in "$@"
+	while [ "$1" ]
 	do
-		case $i in
+		case "$1" in
 		version)
 			echo "easyrsa-unit-tests.sh version: $ERSA_UTEST_VERSION"
 			exit 0
@@ -747,6 +748,7 @@ create_pki ()
 		-x)		export ACT_GLOBAL_OPTS="--x509-alt" ;;
 		*)		print "Unknown option: $i"; failed 1 ;;
 		esac
+		shift
 	done
 
 	init
