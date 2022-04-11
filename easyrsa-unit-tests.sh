@@ -235,7 +235,6 @@ easyrsa_unit_test_version ()
 {
 	newline 3
 
-	ERSA_UTEST_VERSION="2.2.6"
 	print "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	print "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 
@@ -727,10 +726,16 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 14" 15
 
+	ERSA_UTEST_VERSION="2.2.7"
+
 	# Options
 	for i in "$@"
 	do
 		case $i in
+		version)
+			echo "easyrsa-unit-tests.sh version: $ERSA_UTEST_VERSION"
+			exit 0
+		;;
 		-u|-h|--help)	usage ;;
 		-v)		VERBOSE=1 ;;
 		-vv)	VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
