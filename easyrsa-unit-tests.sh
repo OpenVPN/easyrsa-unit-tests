@@ -50,8 +50,6 @@ init ()
 	S_ERRORS=0
 	T_ERRORS=0
 	WAIT_DELAY="${WAIT_DELAY:-0}"
-	VERBOSE="${VERBOSE:-0}"
-	VVERBOSE="${VVERBOSE:-0}"
 	LOG_INDENT_1=" - "
 	LOG_INDENT_2="    - "
 
@@ -224,11 +222,11 @@ verb_off ()
 {
 	SILENCE_WARN=1
 	SAVE_VERB="$VERBOSE"
-	VERBOSE=0
+	unset VERBOSE
 	SAVE_VVERB="$VVERBOSE"
-	VVERBOSE=0
+	unset VVERBOSE
 	SAVE_EOUT="$ERSA_OUT"
-	ERSA_OUT=0
+	unset ERSA_OUT
 }
 
 easyrsa_unit_test_version ()
@@ -238,13 +236,17 @@ easyrsa_unit_test_version ()
 	print "easyrsa-unit-tests version: $ERSA_UTEST_VERSION"
 	print "easyrsa-unit-tests source:  $ERSA_UTEST_CURL_TARGET"
 
-	print "SYS_SSL_LIBB: $SYS_SSL_LIBB"
-	SYS_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
-	print "SYS_SSL_LIBB version: $SYS_LIB_VERSION"
+	#print "SYS_SSL_LIBB: $SYS_SSL_LIBB"
+	#SYS_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
+	#print "SYS_SSL_LIBB version: $SYS_LIB_VERSION"
 
-	print "EASYRSA_OPENSSL: $EASYRSA_OPENSSL"
-	ERSA_LIB_VERSION="$("$EASYRSA_OPENSSL" version)"
-	print "EASYRSA_OPENSSL version: $ERSA_LIB_VERSION"
+	#print "EASYRSA_OPENSSL: $EASYRSA_OPENSSL"
+	#ERSA_LIB_VERSION="$("$EASYRSA_OPENSSL" version)"
+	#print "EASYRSA_OPENSSL version: $ERSA_LIB_VERSION"
+
+	ssl_version="$("$EASYRSA_OPENSSL" version)"
+	printf '%s\n' "* EASYRSA_OPENSSL:" \
+		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
 }
 
 wait_sec ()
@@ -408,12 +410,17 @@ create_req ()
 
 restore_req ()
 {
-	STEP_NAME="Restore sample $EASYRSA_ALGO requests"
+	[ "$EASYRSA_ALGO" ] || die "restore_req - missing algo"
+	STEP_NAME="Restore sample requests for ALGO: $EASYRSA_ALGO"
 	rm -rf "$TEMP_DIR/pki-req-$EASYRSA_ALGO"
+	mkdir -p "$TEMP_DIR/pki-req-$EASYRSA_ALGO"
 	# ubuntu: cp -R, -r, --recursive (copy directories recursively)
 	# Windows: cp.exe -R --recursive (-r copy recursively, non-directories as files)
 	# xcode10.1: cp -R only, does not support --recursive
-	cp -f  -R "$TEMP_DIR/pki-bkp-$EASYRSA_ALGO" "$TEMP_DIR/pki-req-$EASYRSA_ALGO" 2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+	cp -f  -R \
+		"${TEMP_DIR}/pki-bkp-${EASYRSA_ALGO}/"* \
+		"$TEMP_DIR/pki-req-$EASYRSA_ALGO" \
+			2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
 	rm -f "$ACT_ERR" "$ACT_OUT"
 	vcompleted "$STEP_NAME"
 }
@@ -524,10 +531,10 @@ gen_req ()
 import_req ()
 {
 	newline 2
-	REQ_file="$TEMP_DIR/pki-req-$EASYRSA_ALGO/reqs/$REQ_name.req"
+	REQ_file="${TEMP_DIR}/pki-req-${EASYRSA_ALGO}/reqs/${REQ_name}.req"
 
 	# Note: easyrsa still appears to work in batch mode for this action ?
-	export EASYRSA_BATCH=0
+	unset EASYRSA_BATCH
 	STEP_NAME="import-req"
 	action "$REQ_file" "$REQ_name"
 	export EASYRSA_BATCH=1
@@ -606,7 +613,11 @@ create_pki ()
 	newline 3
 	vvverbose "$STAGE_NAME"
 
-	restore_req
+	restore_req || die "restore_req failed"
+
+		ssl_version="$("$EASYRSA_OPENSSL" version)"
+		printf '%s\n' "" "* EASYRSA_OPENSSL:" \
+			"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
 
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
 	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
@@ -753,8 +764,6 @@ create_pki ()
 
 	init
 
-	printf '%s\n' "* EASYRSA_OPENSSL:" "  ${PWD}/openssl" "  $EASYRSA_OPENSSL"
-
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
 
@@ -764,15 +773,13 @@ create_pki ()
 	#[ -f "$DEPS_DIR/libressl.sh" ] || export LIBRESSL_ENABLE=0
 	#[ $((LIBRESSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/libressl.sh"
 
-	setup
-
-	printf '%s\n' "* EASYRSA_OPENSSL:" "  ${PWD}/openssl" "  $EASYRSA_OPENSSL"
 
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
 		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
-	printf '%s\n' "* EASYRSA_OPENSSL:" "  ${PWD}/openssl" "  $EASYRSA_OPENSSL"
 		easyrsa_unit_test_version
+		# Setup requests with same SSL lib
+		setup
 		for i in $TEST_ALGOS
 		do
 			export EASYRSA_ALGO="$i"
@@ -782,6 +789,7 @@ create_pki ()
 			create_pki
 			unset EASYRSA_ALGO EASYRSA_CURVE
 		done
+		easyrsa_unit_test_version
 		unset NEW_PKI
 		unset STAGE_NAME
 		unset EASYRSA_OPENSSL
