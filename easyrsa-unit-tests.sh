@@ -273,10 +273,6 @@ setup ()
 	mkdir -p "$TEMP_DIR" || die "Cannot mkdir: -p $TEMP_DIR"
 	vvverbose "Temp dir: $TEMP_DIR"
 
-	# Don't use vverbose because it filters off the path,
-	# which is what we need to know
-	vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
-
 	STEP_NAME="vars"
 	if [ $((CUSTOM_VARS)) -eq 1 ]
 	then
@@ -779,6 +775,14 @@ create_pki ()
 	then
 		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
 		easyrsa_unit_test_version
+
+		newline 2
+		"$ERSA_BIN" version
+
+		# Don't use vverbose because it filters off the path,
+		# which is what we need to know
+		vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
+
 		# Setup requests with same SSL lib
 		setup
 		for i in $TEST_ALGOS
