@@ -234,6 +234,7 @@ easyrsa_unit_test_version ()
 
 	print "easyrsa-unit-tests.sh version: $ERSA_UTEST_VERSION"
 	print "easyrsa-unit-tests.sh source:  $ERSA_UTEST_CURL_TARGET"
+	print "easyrsa source:                $ERSA_BIN"
 
 	#print "SYS_SSL_LIBB: $SYS_SSL_LIBB"
 	#SYS_LIB_VERSION="$("$SYS_SSL_LIBB" version)"
@@ -244,7 +245,7 @@ easyrsa_unit_test_version ()
 	#print "EASYRSA_OPENSSL version: $ERSA_LIB_VERSION"
 
 	ssl_version="$("$EASYRSA_OPENSSL" version)"
-	printf '%s\n' "* EASYRSA_OPENSSL:" \
+	printf '%s\n' "" "* EASYRSA_OPENSSL:" \
 		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
 }
 
