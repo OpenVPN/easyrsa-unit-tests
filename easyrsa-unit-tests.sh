@@ -340,7 +340,7 @@ secure_key ()
 cleanup ()
 {
 	print
-	print "Cleanup.."
+	print "Unit-test: cleanup"
 	if [ -z "$SAVE_PKI" ]; then
 		print "Remove temp dir: $TEMP_DIR"
 		rm -rf "$TEMP_DIR"
@@ -728,6 +728,7 @@ create_pki ()
 
 ######################################
 
+	# This is badly copied from easyrsa and not fixed, yet..
 	# Register cleanup on EXIT
 	#trap "exited 0" 0
 	# When SIGHUP, SIGINT, SIGQUIT, SIGABRT and SIGTERM,
@@ -736,9 +737,9 @@ create_pki ()
 	trap "failed 2" 2
 	trap "failed 3" 3
 	trap "failed 6" 6
-	trap "failed 14" 15
+	trap "failed 15" 15
 
-	ERSA_UTEST_VERSION="2.2.7"
+	ERSA_UTEST_VERSION="2.3.0"
 
 	# Options
 	while [ "$1" ]
