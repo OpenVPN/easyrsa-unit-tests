@@ -61,6 +61,9 @@ init ()
 			SAVE_PKI=1
 			die "Failed to clean Temporary directory: $TEMP_DIR"
 			}
+		mkdir "$TEMP_DIR" || {
+			die "Failed to create Temporary directory: $TEMP_DIR"
+			}
 	fi
 
 	SHOW_CERT="${SHOW_CERT:-0}"
@@ -498,11 +501,24 @@ show_ca ()
 	unset SHOW_CERT_ONLY
 }
 
+pkcs_export ()
+{
+	newline 2
+	export EASYRSA_PASSIN=pass:
+	export EASYRSA_PASSOUT=pass:
+	STEP_NAME="export-$pkcs_type $REQ_name $1"
+	action
+	unset EASYRSA_PASSIN EASYRSA_PASSOUT
+}
+
 build_full ()
 {
 	newline 2
 	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
 	action
+	pkcs_type=p12 pkcs_export nokey
+	pkcs_type=p7 pkcs_export noca
+	pkcs_type=p8 pkcs_export nopass
 	secure_key
 	execute_node
 }
@@ -512,6 +528,9 @@ build_san_full ()
 	newline 2
 	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
 	action
+	pkcs_type=p12 pkcs_export
+	pkcs_type=p7 pkcs_export
+	pkcs_type=p8 pkcs_export
 	secure_key
 	execute_node
 }
@@ -550,6 +569,9 @@ sign_req ()
 	newline 1
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
+	pkcs_type=p12 pkcs_export nokey
+	pkcs_type=p7 pkcs_export
+	# pkcs_type=p8 pkcs_export nokey - Unsupported
 	secure_key
 	execute_node
 }
