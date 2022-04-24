@@ -813,7 +813,9 @@ create_pki ()
 			[ "$EASYRSA_ALGO" = "ed" ] && export EASYRSA_CURVE="ed25519"
 			STAGE_NAME="System ssl $EASYRSA_ALGO"
 			NEW_PKI="pki-sys ssl-$EASYRSA_ALGO"
+			printf '%s\n' ">>>>> >>>>> Begin easyrsa tests"
 			create_pki
+			printf '%s\n' "<<<<< <<<<< End easyrsa tests"
 			unset EASYRSA_ALGO EASYRSA_CURVE
 		done
 		easyrsa_unit_test_version
