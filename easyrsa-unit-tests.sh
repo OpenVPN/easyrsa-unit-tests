@@ -585,6 +585,15 @@ show_cert ()
 	unset SHOW_CERT_ONLY
 }
 
+show_crl ()
+{
+	newline
+	STEP_NAME="show-crl"
+	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
+	action
+	unset SHOW_CERT_ONLY
+}
+
 renew_cert ()
 {
 	newline 1
@@ -697,6 +706,7 @@ create_pki ()
 	sign_req
 
 	gen_crl
+	show_crl
 
 	unset LIVE_PKI
 	REQ_type="ca"
@@ -729,6 +739,7 @@ create_pki ()
 		sign_req
 
 		gen_crl
+		show_crl
 
 		unset LIVE_PKI
 		secure_key
