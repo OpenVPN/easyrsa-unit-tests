@@ -504,9 +504,9 @@ show_ca ()
 pkcs_export ()
 {
 	newline 2
-	export EASYRSA_PASSIN=pass:
-	export EASYRSA_PASSOUT=pass:
-	STEP_NAME="export-$pkcs_type $REQ_name $1"
+	#export EASYRSA_PASSIN=pass:
+	#export EASYRSA_PASSOUT=pass:
+	STEP_NAME="export-$1 $REQ_name $2 $3"
 	action
 	unset EASYRSA_PASSIN EASYRSA_PASSOUT
 }
@@ -516,9 +516,13 @@ build_full ()
 	newline 2
 	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
 	action
-	pkcs_type=p12 pkcs_export nokey
-	pkcs_type=p7 pkcs_export noca
-	pkcs_type=p8 pkcs_export nopass
+	pkcs_export p12 nokey nopass
+	pkcs_export p7 noca
+	pkcs_export p8 nopass
+	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
+	then
+		pkcs_export p1 nopass
+	fi
 	secure_key
 	execute_node
 }
@@ -528,9 +532,13 @@ build_san_full ()
 	newline 2
 	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
 	action
-	pkcs_type=p12 pkcs_export
-	pkcs_type=p7 pkcs_export
-	pkcs_type=p8 pkcs_export
+	pkcs_export p12 nokey nopass
+	pkcs_export p7 noca
+	pkcs_export p8 nopass
+	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
+	then
+		pkcs_export p1 nopass
+	fi
 	secure_key
 	execute_node
 }
@@ -569,9 +577,13 @@ sign_req ()
 	newline 1
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
-	pkcs_type=p12 pkcs_export nokey
-	pkcs_type=p7 pkcs_export
-	# pkcs_type=p8 pkcs_export nokey - Unsupported
+	pkcs_export p12 nokey nopass
+	pkcs_export p7 noca
+	# pkcs_export p8 nokey - Unsupported
+	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
+	then
+		pkcs_export p1 nopass
+	fi
 	secure_key
 	execute_node
 }
