@@ -619,7 +619,7 @@ renew_cert ()
 revoke_cert ()
 {
 	newline 1
-	STEP_NAME="revoke $REQ_name"
+	STEP_NAME="revoke $REQ_name cessationOfOperation"
 	CAT_THIS="$EASYRSA_PKI/index.txt"
 	#verb_off
 	action
