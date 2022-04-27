@@ -475,6 +475,8 @@ execute_node ()
 	show_cert
 	renew_cert
 	show_cert
+	revoke_renewed_cert
+	# This revokes the renewed (2nd) cert
 	revoke_cert
 }
 
@@ -612,6 +614,16 @@ renew_cert ()
 	wait_sec
 	# This will probably need an inline option
 	STEP_NAME="renew $REQ_name nopass"
+	action
+	secure_key
+}
+
+revoke_renewed_cert ()
+{
+	newline 1
+	wait_sec
+	# This will probably need an inline option
+	STEP_NAME="revoke-renewed $REQ_name superseded"
 	action
 	secure_key
 }
