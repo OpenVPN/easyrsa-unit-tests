@@ -74,6 +74,8 @@ init ()
 	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
 
 	TEST_ALGOS="rsa ec ed"
+	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
+
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
@@ -811,6 +813,7 @@ create_pki ()
 		-f)		DIE=0; CUST_SSL_ENABLE=1; OPENSSL_ENABLE=1; LIBRESSL_ENABLE=1;
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-x)		export ACT_GLOBAL_OPTS="--x509-alt" ;;
+		-l)		LIBRESSL_LIMIT=1 ;;
 		*)		print "Unknown option: $i"; failed 1 ;;
 		esac
 		shift
