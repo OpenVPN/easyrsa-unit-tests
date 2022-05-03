@@ -88,6 +88,9 @@ init ()
 	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-1}"
+	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-10000}"
+	export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
+
 	export OPENSSL_ENABLE="${OPENSSL_ENABLE:-0}"
 	export OPENSSL_BUILD="${OPENSSL_BUILD:-0}"
 	export OPENSSL_VERSION="${OPENSSL_VERSION:-git}"
@@ -353,6 +356,7 @@ cleanup ()
 
 create_vars ()
 {
+	print ' set_var EASYRSA_FIX_OFFSET 163'
 	print ' set_var EASYRSA_DN "org"'
 	print '# Unsupported characters:'
 	print '# `'
@@ -364,7 +368,7 @@ create_vars ()
 	print ' set_var EASYRSA_REQ_COUNTRY   "00"'
 	print ' set_var EASYRSA_REQ_PROVINCE  "test"'
 	print ' set_var EASYRSA_REQ_CITY      "TEST ,./<>  ?;:@~  []!%^  *()-=  _+| (23) TEST"'
-	print ' set_var EASYRSA_REQ_ORG       "example.org"'
+	print ' set_var EASYRSA_REQ_ORG       "example.org Skåne Eslöv"'
 	print ' set_var EASYRSA_REQ_EMAIL     "me@example.net"'
 	print ' set_var EASYRSA_REQ_OU        "TEST esc \{ \} \£ \¬ (4) TEST"'
 }
