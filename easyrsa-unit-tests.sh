@@ -524,6 +524,7 @@ build_full ()
 	newline 2
 	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
 	action
+	verify_cert
 	pkcs_export p12 nokey nopass
 	pkcs_export p7 noca
 	pkcs_export p8 nopass
@@ -575,6 +576,15 @@ show_req ()
 {
 	newline
 	STEP_NAME="show-req $REQ_name"
+	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
+	action
+	unset SHOW_CERT_ONLY
+}
+
+verify_cert ()
+{
+	newline
+	STEP_NAME="verify $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
 	unset SHOW_CERT_ONLY
