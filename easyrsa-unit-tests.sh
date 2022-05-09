@@ -71,36 +71,54 @@ init ()
 	ERSA_OUT="${ERSA_OUT:-0}"
 	ACT_OUT="$TEMP_DIR/.act.out"
 	ACT_ERR="$TEMP_DIR/.act.err"
-	if [ -f "$WORK_DIR/easyrsa" ]; then ERSA_BIN="$WORK_DIR/easyrsa"; else ERSA_BIN="easyrsa"; fi
+
+	# Setup the 'easyrsa' executable to use
+	if [ -f "$WORK_DIR/easyrsa" ]; then
+	# Either './easyrsa'
+		ERSA_BIN="$WORK_DIR/easyrsa"
+	else
+	# Or 'easyrsa' in PATH
+		ERSA_BIN="easyrsa"
+	fi
 
 	TEST_ALGOS="rsa ec ed"
 	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
 
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
+
+	# Don't change this
 	SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-1}"
 	SYS_SSL_LIBB="${SYS_SSL_LIBB:-openssl}"
-	BROKEN_PKI="${BROKEN_PKI:-0}"
-	CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
-	EASYRSA_SP="${EASYRSA_SP:-private}"
-	ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-default}"
-	export DEPS_DIR="$ROOT_DIR/testdeps"
+
+	# Change this
+	# Use any custom command line SSL lib for this
+	OSSL_LIBB="${OSSL_LIBB:-"$SYS_SSL_LIBB"}"
+
 	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-365}"
 	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-529}"
 	export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
 
-	export OPENSSL_ENABLE="${OPENSSL_ENABLE:-0}"
-	export OPENSSL_BUILD="${OPENSSL_BUILD:-0}"
-	export OPENSSL_VERSION="${OPENSSL_VERSION:-git}"
-	export OSSL_LIBB="${OSSL_LIBB:-"$DEPS_DIR/openssl-dev/bin/openssl"}"
-	export CUST_SSL_ENABLE="${CUST_SSL_ENABLE:-0}"
-	export CUST_SSL_LIBB="${CUST_SSL_LIBB:-"$DEPS_DIR/cust-ssl-inst/bin/openssl"}"
-	export LIBRESSL_ENABLE="${LIBRESSL_ENABLE:-0}"
-	export LIBRESSL_BUILD="${LIBRESSL_BUILD:-0}"
-	export LIBRESSL_VERSION="${LIBRESSL_VERSION:-2.8.3}"
-	export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
+	# Not worth this dev effort
+	#BROKEN_PKI="${BROKEN_PKI:-0}"
+	#CUSTOM_OPTS="${CUSTOM_OPTS:-0}"
+	#EASYRSA_SP="${EASYRSA_SP:-private}"
+	#ERSA_UTEST_CURL_TARGET="${ERSA_UTEST_CURL_TARGET:-default}"
+	#export DEPS_DIR="$ROOT_DIR/testdeps"
+	#export OPENSSL_ENABLE="${OPENSSL_ENABLE:-0}"
+	#export OPENSSL_BUILD="${OPENSSL_BUILD:-0}"
+	#export OPENSSL_VERSION="${OPENSSL_VERSION:-git}"
+
+	#export OSSL_LIBB="${OSSL_LIBB:-"$DEPS_DIR/openssl-dev/bin/openssl"}"
+
+	#export CUST_SSL_ENABLE="${CUST_SSL_ENABLE:-0}"
+	#export CUST_SSL_LIBB="${CUST_SSL_LIBB:-"$DEPS_DIR/cust-ssl-inst/bin/openssl"}"
+	#export LIBRESSL_ENABLE="${LIBRESSL_ENABLE:-0}"
+	#export LIBRESSL_BUILD="${LIBRESSL_BUILD:-0}"
+	#export LIBRESSL_VERSION="${LIBRESSL_VERSION:-2.8.3}"
+	#export LSSL_LIBB="${LSSL_LIBB:-"$DEPS_DIR/libressl/usr/local/bin/openssl"}"
 }
 
 success ()
@@ -256,6 +274,57 @@ easyrsa_unit_test_version ()
 	printf '%s\n' "" "* EASYRSA_OPENSSL:" \
 		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
 }
+
+# Identify host OS
+detect_host() {
+	unset -v easyrsa_host_os easyrsa_host_test easyrsa_win_git_bash
+
+	# Detect Windows
+	[ "${OS}" ] && easyrsa_host_test="${OS}"
+
+	# shellcheck disable=SC2016 # expansion inside '' blah
+	easyrsa_ksh='@(#)MIRBSD KSH R39-w32-beta14 $Date: 2013/06/28 21:28:57 $'
+	[ "${KSH_VERSION}" = "${easyrsa_ksh}" ] && easyrsa_host_test="${easyrsa_ksh}"
+	unset -v easyrsa_ksh
+
+	# If not Windows then nix
+	if [ "${easyrsa_host_test}" ]; then
+		easyrsa_host_os=win
+		easyrsa_uname="${easyrsa_host_test}"
+		easyrsa_shell="$SHELL"
+		# Detect Windows git/bash
+		if [ "${EXEPATH}" ]; then
+			easyrsa_shell="$SHELL (Git)"
+			easyrsa_win_git_bash="${EXEPATH}"
+			# If found then set openssl NOW!
+			[ -e /usr/bin/openssl ] && set_var EASYRSA_OPENSSL /usr/bin/openssl
+		fi
+	else
+		easyrsa_host_os=nix
+		easyrsa_uname="$(uname 2>/dev/null)"
+		easyrsa_shell="$SHELL"
+
+		# Test the Unit Test SSL Library version, not EasyRSA SSL Lib
+		val="$("$OSSL_LIBB" version)"
+		case "${val%% *}" in
+			# OpenSSL does not require a safe config-file
+			OpenSSL)
+				unset -v require_safe_ssl_conf
+			;;
+			LibreSSL)
+				require_safe_ssl_conf=1
+				#export LIBRESSL_LIMIT=1
+				TEST_ALGOS="rsa ec"
+			;;
+			*) die "\
+Missing or invalid OpenSSL
+Expected to find openssl command at: $EASYRSA_OPENSSL"
+		esac
+	fi
+	host_out="$easyrsa_host_os | $easyrsa_uname | $easyrsa_shell"
+	host_out="${host_out}${easyrsa_win_git_bash+ | "$easyrsa_win_git_bash"}"
+	unset -v easyrsa_host_test
+} # => detect_host()
 
 wait_sec ()
 {
@@ -835,6 +904,10 @@ create_pki ()
 
 	init
 
+	# Detect Host and disable Edwards curve tests for LibreSSL
+	detect_host
+
+
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0
 	#[ $((CUST_SSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/custom-ssl.sh"
 
@@ -847,7 +920,8 @@ create_pki ()
 
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
-		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
+		#export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
+		export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$OSSL_LIBB"}"
 		easyrsa_unit_test_version
 
 		newline 2
