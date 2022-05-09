@@ -87,9 +87,9 @@ init ()
 	export DEPS_DIR="$ROOT_DIR/testdeps"
 	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
-	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-1}"
-	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-365}"
-	#export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
+	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-365}"
+	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-529}"
+	export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
 
 	export OPENSSL_ENABLE="${OPENSSL_ENABLE:-0}"
 	export OPENSSL_BUILD="${OPENSSL_BUILD:-0}"
@@ -356,7 +356,7 @@ cleanup ()
 
 create_vars ()
 {
-	print ' set_var EASYRSA_FIX_OFFSET 163'
+	#print ' set_var EASYRSA_FIX_OFFSET 163'
 	print ' set_var EASYRSA_DN "org"'
 	print '# Unsupported characters:'
 	print '# `'
