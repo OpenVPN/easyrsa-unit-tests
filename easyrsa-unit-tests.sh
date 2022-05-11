@@ -533,13 +533,14 @@ action ()
 	then
 		vvverbose "***** $ERSA_BIN ${ACT_GLOBAL_OPTS} ${STEP_NAME} $ACT_FILE_NAME $ACT_OPTS"
 		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
-			2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
+			2>"$ACT_ERR" 1>"$ACT_OUT" \
+				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 
 		rm -f "$ACT_ERR" "$ACT_OUT"
 	else
 		vvverbose "***** $ERSA_BIN ${ACT_GLOBAL_OPTS} ${STEP_NAME} $ACT_FILE_NAME $ACT_OPTS"
 		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
-			|| die "$STEP_NAME"
+				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 	fi
 	completed
 }
@@ -610,6 +611,7 @@ build_san_full ()
 	newline 2
 	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
 	action
+	verify_cert
 	pkcs_export p12 nokey nopass
 	pkcs_export p7 noca
 	pkcs_export p8 nopass
@@ -664,6 +666,7 @@ sign_req ()
 	newline 1
 	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
 	action
+	verify_cert
 	pkcs_export p12 nokey nopass
 	pkcs_export p7 noca
 	# pkcs_export p8 nokey - Unsupported
@@ -700,6 +703,7 @@ renew_cert ()
 	# This will probably need an inline option
 	STEP_NAME="renew $REQ_name nopass"
 	action
+	verify_cert
 	secure_key
 }
 
