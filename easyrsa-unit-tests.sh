@@ -188,8 +188,7 @@ filter_msg ()
 	MSG="$(
 		print "$1" | \
 		sed \
-			-e 's/--subject-alt-name.*,//' \
-			-e 's/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]//' \
+			-e 's/--subject-alt-name=[[:alnum:][:punct:]]*[[:blank:]]//' \
 			-e 's`/.*/``' \
 			-e 's/ nopass//' \
 			-e 's/ inline//' \
