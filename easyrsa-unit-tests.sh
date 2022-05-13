@@ -185,13 +185,17 @@ notice ()
 # shellcheck disable=SC2016
 filter_msg ()
 {
-	MSG="$(	print "$1" | sed \
-		-e 's/ $//' \
-		-e 's/--subject-alt-name.*,//' \
-		-e 's/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]\ //' \
-		-e 's`/.*/``' \
-		-e 's/ nopass//' \
-		-e 's/ inline//' \
+	MSG="$(
+		print "$1" | \
+		sed \
+			-e 's/--subject-alt-name.*,//' \
+			-e 's/IP:[0-9]\.[0-9]\.[0-9]\.[0-9]//' \
+			-e 's`/.*/``' \
+			-e 's/ nopass//' \
+			-e 's/ inline//' \
+			-e 's/^ //' \
+			-e 's/ $//' \
+			-e 's/  / /' \
 		)"
 }
 
@@ -309,10 +313,11 @@ detect_host() {
 		case "${val%% *}" in
 			# OpenSSL does not require a safe config-file
 			OpenSSL)
-				unset -v require_safe_ssl_conf
+				#unset -v require_safe_ssl_conf
+				:
 			;;
 			LibreSSL)
-				require_safe_ssl_conf=1
+				#require_safe_ssl_conf=1
 				#export LIBRESSL_LIMIT=1
 				TEST_ALGOS="rsa ec"
 			;;
@@ -412,7 +417,6 @@ secure_key ()
 
 cleanup ()
 {
-	print
 	print "Unit-test: cleanup"
 	if [ -z "$SAVE_PKI" ]; then
 		print "Remove temp dir: $TEMP_DIR"
@@ -460,9 +464,14 @@ create_req ()
 	export EASYRSA_BATCH=1
 	export EASYRSA_REQ_CN="maximilian"
 	LIVE_PKI=1
-	STEP_NAME="build-ca nopass subca"
-	action
-	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/maximilian.req"
+
+	#STEP_NAME="build-ca nopass subca"
+	#STEP_NAME="build-ca subca"
+	#action
+
+	build_sub_ca
+	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && \
+		mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/$EASYRSA_REQ_CN.req"
 
 	export EASYRSA_REQ_CN="specter"
 	gen_req
@@ -522,8 +531,18 @@ action ()
 	ACT_FILE_NAME="$1"
 	ACT_OPTS="$2"
 
-	verbose "$EASYRSA_ALGO: ${ACT_GLOBAL_OPTS:+"$ACT_GLOBAL_OPTS "}$STEP_NAME $ACT_OPTS"
-	vverbose "$EASYRSA_ALGO: ${ACT_GLOBAL_OPTS:+"$ACT_GLOBAL_OPTS "}$STEP_NAME $ACT_OPTS"
+	if [ "$EASYRSA_USE_PASS" ]; then
+		PASSIN_OPT=--passin=pass:EasyRSA
+		PASSOUT_OPT=--passout=pass:EasyRSA
+	else
+		unset -v PASSIN_OPT PASSOUT_OPT
+	fi
+
+	verbose "$EASYRSA_ALGO: \
+${ACT_GLOBAL_OPTS:+"${ACT_GLOBAL_OPTS}" }$STEP_NAME${ACT_OPTS+ "$ACT_OPTS"}"
+	vverbose "$EASYRSA_ALGO: \
+${ACT_GLOBAL_OPTS:+"${ACT_GLOBAL_OPTS}" }$STEP_NAME${ACT_OPTS+ "$ACT_OPTS"}"
+
 	newline
 	vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
 	newline
@@ -531,15 +550,32 @@ action ()
 	# shellcheck disable=SC2086
 	if [ $((ERSA_OUT + SHOW_CERT_ONLY)) -eq 0 ]
 	then
-		vvverbose "***** $ERSA_BIN ${ACT_GLOBAL_OPTS} ${STEP_NAME} $ACT_FILE_NAME $ACT_OPTS"
-		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
+		vvverbose "\
+***** $ERSA_BIN \
+${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
+${ACT_GLOBAL_OPTS+"$ACT_GLOBAL_OPTS" }\
+${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
+
+		"$ERSA_BIN" ${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
+			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS} "}\
+			${STEP_NAME} \
+			"$ACT_FILE_NAME" "$ACT_OPTS" \
 			2>"$ACT_ERR" 1>"$ACT_OUT" \
 				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 
 		rm -f "$ACT_ERR" "$ACT_OUT"
 	else
-		vvverbose "***** $ERSA_BIN ${ACT_GLOBAL_OPTS} ${STEP_NAME} $ACT_FILE_NAME $ACT_OPTS"
-		"$ERSA_BIN" ${ACT_GLOBAL_OPTS} ${STEP_NAME} "$ACT_FILE_NAME" "$ACT_OPTS" \
+		vvverbose "\
+***** $ERSA_BIN \
+${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
+${ACT_GLOBAL_OPTS+"$ACT_GLOBAL_OPTS" }\
+${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
+
+		"$ERSA_BIN" \
+			${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
+			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS} "}\
+			${STEP_NAME} \
+			"$ACT_FILE_NAME" "$ACT_OPTS" \
 				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 	fi
 	completed
@@ -567,6 +603,15 @@ build_ca ()
 {
 	newline 2
 	STEP_NAME="build-ca nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-ca"
+	action
+}
+
+build_sub_ca ()
+{
+	newline 2
+	STEP_NAME="build-ca subca nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-ca subca"
 	action
 }
 
@@ -579,29 +624,57 @@ show_ca ()
 	unset SHOW_CERT_ONLY
 }
 
+pkcs_all() {
+	#PKCS#12
+		if [ "$EASYRSA_USE_PASS" ]; then
+			pkcs_export p12 nokey
+		else
+			pkcs_export p12 nokey nopass
+		fi
+
+	# PKCS#7
+	pkcs_export p7 noca
+
+	# PKCS#8
+	if [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
+	then
+		if [ "$EASYRSA_USE_PASS" ]; then
+			pkcs_export p8
+		else
+			pkcs_export p8 nopass
+		fi
+	fi
+
+	# PKCS#1
+	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
+	then
+		if [ "$EASYRSA_USE_PASS" ]; then
+			pkcs_export p1
+		else
+			pkcs_export p1 nopass
+		fi
+	fi
+}
+
 pkcs_export ()
 {
+	pkcs_type="$1"
+	shift
+	opt_1="$1"
+	opt_2="$2"
 	newline 2
-	#export EASYRSA_PASSIN=pass:
-	#export EASYRSA_PASSOUT=pass:
-	STEP_NAME="export-$1 $REQ_name $2 $3"
+	STEP_NAME="export-$pkcs_type ${REQ_name}${opt_1:+ "$opt_1"}${opt_2:+ "$opt_2"}"
 	action
-	unset EASYRSA_PASSIN EASYRSA_PASSOUT
 }
 
 build_full ()
 {
 	newline 2
 	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-$REQ_type-full $REQ_name inline"
 	action
 	verify_cert
-	pkcs_export p12 nokey nopass
-	pkcs_export p7 noca
-	pkcs_export p8 nopass
-	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
-	then
-		pkcs_export p1 nopass
-	fi
+	pkcs_all
 	secure_key
 	execute_node
 }
@@ -609,16 +682,12 @@ build_full ()
 build_san_full ()
 {
 	newline 2
-	STEP_NAME="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0 build-$REQ_type-full $REQ_name nopass inline"
+	user_SAN="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0"
+	STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name nopass inline"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name inline"
 	action
 	verify_cert
-	pkcs_export p12 nokey nopass
-	pkcs_export p7 noca
-	pkcs_export p8 nopass
-	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
-	then
-		pkcs_export p1 nopass
-	fi
+	pkcs_all
 	secure_key
 	execute_node
 }
@@ -627,8 +696,21 @@ gen_req ()
 {
 	newline 1
 	STEP_NAME="$1 gen-req $REQ_type $EASYRSA_REQ_CN nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$1 gen-req $REQ_type $EASYRSA_REQ_CN"
 	action
 	secure_key
+}
+
+sign_req ()
+{
+	newline 1
+	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="sign-req $REQ_type $REQ_name"
+	action
+	verify_cert
+	pkcs_all
+	secure_key
+	execute_node
 }
 
 import_req ()
@@ -661,23 +743,6 @@ verify_cert ()
 	unset SHOW_CERT_ONLY
 }
 
-sign_req ()
-{
-	newline 1
-	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
-	action
-	verify_cert
-	pkcs_export p12 nokey nopass
-	pkcs_export p7 noca
-	# pkcs_export p8 nokey - Unsupported
-	if [ "$EASYRSA_ALGO" = rsa ] && [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
-	then
-		pkcs_export p1 nopass
-	fi
-	secure_key
-	execute_node
-}
-
 show_cert ()
 {
 	newline
@@ -702,8 +767,10 @@ renew_cert ()
 	wait_sec
 	# This will probably need an inline option
 	STEP_NAME="renew $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="renew $REQ_name"
 	action
 	verify_cert
+	pkcs_all
 	secure_key
 }
 
@@ -755,9 +822,11 @@ create_pki ()
 
 	restore_req || die "restore_req failed"
 
-		ssl_version="$("$EASYRSA_OPENSSL" version)"
-		printf '%s\n' "" "* EASYRSA_OPENSSL:" \
-			"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
+	ssl_version="$("$EASYRSA_OPENSSL" version)"
+	printf '%s\n' "" "* EASYRSA_OPENSSL:" \
+		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}" ""
+
+	[ "$EASYRSA_USE_PASS" ] && print "* Use Passwords!" && print
 
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
 	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
@@ -894,6 +963,7 @@ create_pki ()
 		-u|-h|--help)	usage ;;
 		-v)		VERBOSE=1 ;;
 		-vv)	VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
+		-p)		EASYRSA_USE_PASS=1 ;;
 		-t)		WAIT_DELAY=0; VERBOSE=1 ;;
 		-b)		DIE=0; BROKEN_PKI=1; SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-0}";
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
@@ -949,6 +1019,7 @@ create_pki ()
 			unset EASYRSA_ALGO EASYRSA_CURVE
 		done
 		easyrsa_unit_test_version
+		[ "$EASYRSA_USE_PASS" ] && print && print "* Use Passwords!" && print
 		unset NEW_PKI
 		unset STAGE_NAME
 		unset EASYRSA_OPENSSL
@@ -981,6 +1052,7 @@ create_pki ()
 	fi
 
 	STAGE_NAME="Libressl"
+	# shellcheck disable=SC2153  ##  (info): Possible misspelling: LSSL_LIBB
 	if [ $((LIBRESSL_ENABLE)) -eq 1 ]
 	then
 		[ -f "$LSSL_LIBB" ] || die "Missing libressl: $LSSL_LIBB"
