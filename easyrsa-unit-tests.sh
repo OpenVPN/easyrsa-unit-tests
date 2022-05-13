@@ -682,7 +682,7 @@ build_full ()
 build_san_full ()
 {
 	newline 2
-	user_SAN="--subject-alt-name=DNS:www.example.org,IP:0.0.0.0"
+	user_SAN="--subject-alt-name=DNS:primary.example.net,DNS:alternate.example.net,IP:0.0.0.0,IP:255.255.255.255"
 	STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name nopass inline"
 	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name inline"
 	action
