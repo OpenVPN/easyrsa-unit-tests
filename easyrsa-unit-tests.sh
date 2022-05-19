@@ -384,6 +384,7 @@ setup ()
 	STAGE_NAME="Sample requests"
 	if [ $((UNSIGNED_PKI)) -eq 1 ] && [ $((SYS_SSL_ENABLE + CUST_SSL_ENABLE + OPENSSL_ENABLE + LIBRESSL_ENABLE)) -ne 0 ]
 	then
+		vverbose "$STAGE_NAME"
 		[ "$VVERBOSE" ] || verb_off
 		for i in $TEST_ALGOS
 		do
@@ -794,6 +795,17 @@ revoke_cert ()
 	secure_key
 }
 
+status_reports ()
+{
+	newline 1
+	STEP_NAME="show-expire"
+	action
+	STEP_NAME="show-revoke"
+	action
+	STEP_NAME="show-renew"
+	action
+}
+
 gen_crl ()
 {
 	newline 2
@@ -857,6 +869,8 @@ create_pki ()
 	REQ_type="serverClient"
 	REQ_name="s03"
 	build_full
+
+	status_reports
 
 	REQ_type="serverClient"
 	REQ_name="s04"
