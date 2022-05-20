@@ -165,15 +165,25 @@ die ()
 newline ()
 {
 	[ $((VVERBOSE + SHOW_CERT_ONLY)) -eq 0 ] && return 0
-	if [ "$1" = "3" ]; then
-		print "|| ###########################################################################"
-	elif [ "$1" = "2" ]; then
-		print "|| ==========================================================================="
-	elif [ "$1" = "1" ]; then
-		print "|| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
-	else
+	case "$1" in
+	3)
+		print \
+"|| ###########################################################################"
+	;;
+	2)
+		print \
+"|| ==========================================================================="
+	;;
+	1)
+		print \
+"|| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+	;;
+	'')
 		[ $((ERSA_OUT)) -ne 1 ] || print "||"
-	fi
+	;;
+	*)
+		die "Unrecognised newline type: $1"
+	esac
 }
 
 notice ()
@@ -517,7 +527,7 @@ restore_req ()
 	# ubuntu: cp -R, -r, --recursive (copy directories recursively)
 	# Windows: cp.exe -R --recursive (-r copy recursively, non-directories as files)
 	# xcode10.1: cp -R only, does not support --recursive
-	cp -f  -R \
+	cp -f -R \
 		"${TEMP_DIR}/pki-bkp-${EASYRSA_ALGO}/"* \
 		"$TEMP_DIR/pki-req-$EASYRSA_ALGO" \
 			2>"$ACT_ERR" 1>"$ACT_OUT" || die "$STEP_NAME"
@@ -596,6 +606,7 @@ ${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
 				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 	fi
 	completed
+	newline
 }
 
 execute_node ()
@@ -611,14 +622,14 @@ execute_node ()
 
 init_pki ()
 {
-	newline 2
+	newline 3
 	STEP_NAME="init-pki"
 	action
 }
 
 build_ca ()
 {
-	newline 2
+	newline 1
 	STEP_NAME="build-ca nopass"
 	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-ca"
 	action
@@ -626,7 +637,7 @@ build_ca ()
 
 build_sub_ca ()
 {
-	newline 2
+	newline 1
 	STEP_NAME="build-ca subca nopass"
 	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-ca subca"
 	action
@@ -634,10 +645,10 @@ build_sub_ca ()
 
 show_ca ()
 {
+	newline 1
 	STEP_NAME="show-ca"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
-	newline
 	unset SHOW_CERT_ONLY
 }
 
@@ -675,13 +686,15 @@ pkcs_all() {
 
 pkcs_export ()
 {
+	newline 1
 	pkcs_type="$1"
 	shift
 	opt_1="$1"
 	opt_2="$2"
-	newline 2
 	STEP_NAME="export-$pkcs_type ${REQ_name}${opt_1:+ "$opt_1"}${opt_2:+ "$opt_2"}"
 	action
+	vcompleted "$STEP_NAME"
+	newline
 }
 
 build_full ()
@@ -744,7 +757,7 @@ import_req ()
 
 show_req ()
 {
-	newline
+	newline 1
 	STEP_NAME="show-req $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
@@ -753,7 +766,7 @@ show_req ()
 
 verify_cert ()
 {
-	newline
+	newline 1
 	STEP_NAME="verify $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
@@ -762,7 +775,7 @@ verify_cert ()
 
 show_cert ()
 {
-	newline
+	newline 1
 	STEP_NAME="show-cert $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
@@ -771,7 +784,7 @@ show_cert ()
 
 show_crl ()
 {
-	newline
+	newline 2
 	STEP_NAME="show-crl"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	action
@@ -806,9 +819,7 @@ revoke_cert ()
 	newline 1
 	STEP_NAME="revoke $REQ_name cessationOfOperation"
 	CAT_THIS="$EASYRSA_PKI/index.txt"
-	#verb_off
 	action
-	#verb_on
 	secure_key
 }
 
@@ -817,8 +828,10 @@ status_reports ()
 	newline 1
 	STEP_NAME="show-expire"
 	action
+	newline 1
 	STEP_NAME="show-revoke"
 	action
+	newline 1
 	STEP_NAME="show-renew"
 	action
 }
