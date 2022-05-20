@@ -203,13 +203,20 @@ verbose ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
 	filter_msg "$1"
-	printf "%s" "$LOG_INDENT" "$MSG .. "
+	printf "%s" "$LOG_INDENT" "$MSG .."
+}
+
+verbose_update ()
+{
+	# verb is turned off when this is used
+	[ "$VVERBOSE" ] && return 0
+	printf '%s' "."
 }
 
 completed ()
 {
 	[ $((VERBOSE)) -eq 1 ] || return 0
-	print "ok"
+	print " ok"
 }
 
 vverbose ()
@@ -348,10 +355,12 @@ setup ()
 	# dir: ./easyrsa3
 	mkdir -p "$WORK_DIR" ||  die "mkdir $WORK_DIR"
 	cd "$WORK_DIR" || die "cd $WORK_DIR"
+	verbose_update
 	vvverbose "Working dir: $WORK_DIR"
 
 	# dir: ./easyrsa3/unit test
 	mkdir -p "$TEMP_DIR" || die "Cannot mkdir: -p $TEMP_DIR"
+	verbose_update
 	vvverbose "Temp dir: $TEMP_DIR"
 
 	STEP_NAME="vars"
@@ -362,6 +371,7 @@ setup ()
 		#[ -f "$FOUND_VARS/vars.example" ] || dir "File missing: $FOUND_VARS/vars.example"
 		#cp "$FOUND_VARS/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
 		create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+		verbose_update
 		vcompleted "$STEP_NAME"
 	else
 		vdisabled "$STEP_NAME"
@@ -378,7 +388,10 @@ setup ()
 		[ -f "$YACF.orig" ] && die "Aborted! Temporary file exists: $YACF.orig"
 		mv "$YACF" "$YACF.orig"
 		create_custom_opts > "$YACF"
+		verbose_update
 		vcompleted "$STEP_NAME"
+	else
+		vdisabled "$STEP_NAME"
 	fi
 
 	STAGE_NAME="Sample requests"
@@ -399,6 +412,7 @@ setup ()
 			unset NEW_PKI
 		done
 		[ "$VVERBOSE" ] || verb_on
+		verbose_update
 		vcompleted "$STAGE_NAME"
 	else
 		vdisabled "$STAGE_NAME"
@@ -459,31 +473,34 @@ create_req ()
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
 
 	init_pki
+	verbose_update
 	cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
 
 	export EASYRSA_BATCH=1
 	export EASYRSA_REQ_CN="maximilian"
 	LIVE_PKI=1
 
-	#STEP_NAME="build-ca nopass subca"
-	#STEP_NAME="build-ca subca"
-	#action
-
 	build_sub_ca
+	verbose_update
+
 	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && \
 		mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/$EASYRSA_REQ_CN.req"
 
 	export EASYRSA_REQ_CN="specter"
 	gen_req
+	verbose_update
 
 	export EASYRSA_REQ_CN="meltdown"
 	gen_req
+	verbose_update
 
 	export EASYRSA_REQ_CN="heartbleed"
 	gen_req
+	verbose_update
 
 	export EASYRSA_REQ_CN="VORACLE"
 	gen_req "--subject-alt-name=DNS:www.example.org,IP:0.0.0.0"
+	verbose_update
 
 	unset LIVE_PKI
 	unset EASYRSA_REQ_CN
