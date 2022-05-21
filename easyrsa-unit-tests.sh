@@ -1118,6 +1118,12 @@ create_pki ()
 		vdisabled "$STAGE_NAME"
 	fi
 
+
+######## shut-down
+
+		newline 2
+		"$ERSA_BIN" version
+
 	cleanup
 
 notice "Completed $(date) (Total errors: $T_ERRORS)"
