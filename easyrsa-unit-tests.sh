@@ -454,20 +454,28 @@ cleanup ()
 create_vars ()
 {
 	#print ' set_var EASYRSA_FIX_OFFSET 163'
-	print ' set_var EASYRSA_DN "org"'
-	print '# Unsupported characters:'
-	print '# `'
-	print '# $'
-	print '# "'
-	print '# single-quote'
-	print '# #'
-	print '# & (Win)'
-	print ' set_var EASYRSA_REQ_COUNTRY   "00"'
-	print ' set_var EASYRSA_REQ_PROVINCE  "test"'
-	print ' set_var EASYRSA_REQ_CITY      "TEST ,./<>  ?;:@~  []!%^  *()-=  _+| (23) TEST"'
-	print ' set_var EASYRSA_REQ_ORG       "example.org Skåne Eslöv"'
-	print ' set_var EASYRSA_REQ_EMAIL     "me@example.net"'
-	print ' set_var EASYRSA_REQ_OU        "TEST esc \{ \} \£ \¬ (4) TEST"'
+
+	cat << "UTEST_VARS"
+
+set_var EASYRSA_DN "org"
+
+# Unsupported characters:
+# ` # backtick - incompatible with easyrsa_openssl()
+# " # doublequote - Must be single quoted and escaped, due to set_var()
+#   # Also, incompatible with openssl-easyrsa.cnf
+
+set_var EASYRSA_REQ_COUNTRY   "00"
+set_var EASYRSA_REQ_PROVINCE  '&| Skåne Eslöv <=||=> (\dq) & test <=||=>'
+set_var EASYRSA_REQ_CITY      "&| Skåne Eslöv <=||=> TEST ,./<>  ?;:@~  []!%^  *()-=  _+| &#$' TEST"
+set_var EASYRSA_REQ_ORG       "&| & Skåne & Eslöv example.org #TEST esc \£ \¬  & £,¬ (4) TEST#"
+set_var EASYRSA_REQ_EMAIL     "&| me@example.net"
+export EASYRSA_REQ_OU="&| Skåne Eslöv (\") &|$|'|# (\") <=||=> Doe's & Beer's <=||=> \{ \} &"
+
+UTEST_VARS
+
+#
+# \{ \}  },{,},
+#
 }
 
 create_custom_opts ()
@@ -622,7 +630,6 @@ execute_node ()
 
 init_pki ()
 {
-	newline 3
 	STEP_NAME="init-pki"
 	action
 }
