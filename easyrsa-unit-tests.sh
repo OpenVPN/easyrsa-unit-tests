@@ -150,6 +150,7 @@ warn ()
 
 die ()
 {
+
 	print
 	print "FATAL ERROR! Command failed -> ${1:-unknown error}"
 	[ -f "$ACT_OUT" ] && print && print "EasyRSA log:" && cat "$ACT_OUT"
@@ -453,29 +454,26 @@ cleanup ()
 
 create_vars ()
 {
-	#print ' set_var EASYRSA_FIX_OFFSET 163'
-
 	cat << "UTEST_VARS"
 
+set_var EASYRSA_FIX_OFFSET 163
 set_var EASYRSA_DN "org"
+set_var EASYRSA_REQ_COUNTRY   "XX"
 
 # Unsupported characters:
-# ` # backtick - incompatible with easyrsa_openssl()
-# " # doublequote - Must be single quoted and escaped, due to set_var()
-#   # Also, incompatible with openssl-easyrsa.cnf
+# ` # backtick - Incompatible with easyrsa_openssl()
+# " # doublequote - Incompatible with set_var() etc..
+# {,} # curly brace - Incompatible with set_var()..
 
-set_var EASYRSA_REQ_COUNTRY   "00"
-set_var EASYRSA_REQ_PROVINCE  '&| Skåne Eslöv <=||=> (\dq) & test <=||=>'
-set_var EASYRSA_REQ_CITY      "&| Skåne Eslöv <=||=> TEST ,./<>  ?;:@~  []!%^  *()-=  _+| &#$' TEST"
-set_var EASYRSA_REQ_ORG       "&| & Skåne & Eslöv example.org #TEST esc \£ \¬  & £,¬ (4) TEST#"
-set_var EASYRSA_REQ_EMAIL     "&| me@example.net"
-export EASYRSA_REQ_OU="&| Skåne Eslöv (\") &|$|'|# (\") <=||=> Doe's & Beer's <=||=> \{ \} &"
+set_var EASYRSA_REQ_PROVINCE	"&& <\$\dollar> $ PROV Skåne Eslöv ## Doe's && Beer's ##"
+set_var EASYRSA_REQ_CITY		"&& <\{> CITY <\}> Skåne Eslöv ## Doe's && Beer's ##"
+set_var EASYRSA_REQ_ORG			"&& ¬£*% ORGN Skåne Eslöv ## Doe\'s && Beer\'s ##"
+#set_var EASYRSA_REQ_OU			"&& ORGU Skåne Eslöv ## Doe's && Beer's ##"
+set_var EASYRSA_REQ_EMAIL		"&& me@example.net ##"
+
+export EASYRSA_REQ_OU='EXTERNAL && {}} ORGU {{} $$ ## <\"> <= double-quote => <\"/\"> ##'
 
 UTEST_VARS
-
-#
-# \{ \}  },{,},
-#
 }
 
 create_custom_opts ()
