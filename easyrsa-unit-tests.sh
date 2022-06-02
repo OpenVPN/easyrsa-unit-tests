@@ -294,6 +294,8 @@ easyrsa_unit_test_version ()
 	ssl_version="$("$EASYRSA_OPENSSL" version)"
 	printf '%s\n' "" "* EASYRSA_OPENSSL:" \
 		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
+
+	detect_host # set LIBRESSL_LIMIT, when required..
 }
 
 # Identify host OS
@@ -325,8 +327,8 @@ detect_host() {
 		easyrsa_uname="$(uname 2>/dev/null)"
 		easyrsa_shell="$SHELL"
 
-		# Test the Unit Test SSL Library version, not EasyRSA SSL Lib
-		val="$("$OSSL_LIBB" version)"
+		# Test the Unit Test SSL Library version,
+		val="$("$EASYRSA_OPENSSL" version 2>/dev/null)"
 		case "${val%% *}" in
 			# OpenSSL does not require a safe config-file
 			OpenSSL)
@@ -335,7 +337,7 @@ detect_host() {
 			;;
 			LibreSSL)
 				#require_safe_ssl_conf=1
-				#export LIBRESSL_LIMIT=1
+				export LIBRESSL_LIMIT=1
 				TEST_ALGOS="rsa ec"
 			;;
 			*) die "\
@@ -381,7 +383,14 @@ setup ()
 		# FOUND_VARS=`where is vars.example`
 		#[ -f "$FOUND_VARS/vars.example" ] || dir "File missing: $FOUND_VARS/vars.example"
 		#cp "$FOUND_VARS/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
-		create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+
+		if [ "$LIBRESSL_LIMIT" ]; then
+			create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+		else
+			create_mad_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+			#create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+		fi
+
 		verbose_update
 		vcompleted "$STEP_NAME"
 	else
@@ -454,24 +463,49 @@ cleanup ()
 
 create_vars ()
 {
+	#print ' set_var EASYRSA_FIX_OFFSET 163'
+	print ' set_var EASYRSA_DN "org"'
+	print '# Unsupported characters:'
+	print '# `'
+	print '# $'
+	print '# "'
+	print '# single-quote'
+	print '# #'
+	print '# & (Win)'
+	print ' set_var EASYRSA_REQ_COUNTRY   "00"'
+	print ' set_var EASYRSA_REQ_PROVINCE  "test"'
+	print ' set_var EASYRSA_REQ_CITY      "TEST ,./<>  ?;:@~  []!%^  *()-=  _+| (23) TEST"'
+	print ' set_var EASYRSA_REQ_ORG       "example.org Skåne Eslöv"'
+	print ' set_var EASYRSA_REQ_EMAIL     "me@example.net"'
+	print ' set_var EASYRSA_REQ_OU        "TEST esc \{ \} \£ \¬ (4) TEST"'
+}
+
+create_mad_vars ()
+{
 	cat << "UTEST_VARS"
 
 set_var EASYRSA_FIX_OFFSET 163
-set_var EASYRSA_DN "org"
-set_var EASYRSA_REQ_COUNTRY   "XX"
 
 # Unsupported characters:
-# ` # backtick - Incompatible with easyrsa_openssl()
-# " # doublequote - Incompatible with set_var() etc..
-# {,} # curly brace - Incompatible with set_var()..
+# `   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
+# "   # double-quote - MUST be double escaped. MUST be exported (Do not use 'set_var')
+#       Example: export EASYRSA_REQ_OU="My \\\"Organisational\\\" Unit"
+# $   # dollar-sign - MUST be escaped, due to set_var()
+#       Note: Any alpha-numeric character directly following '$' MUST also be escaped
+#       Examples: "\$ foo" (With a space separator) or "\$\foo" (Without a space separator
+# {,} # Curly-brace - MUST be escaped, due to set_var()
 
-set_var EASYRSA_REQ_PROVINCE	"&& <\$\dollar> $ PROV Skåne Eslöv ## Doe's && Beer's ##"
-set_var EASYRSA_REQ_CITY		"&& <\{> CITY <\}> Skåne Eslöv ## Doe's && Beer's ##"
-set_var EASYRSA_REQ_ORG			"&& ¬£*% ORGN Skåne Eslöv ## Doe\'s && Beer\'s ##"
-#set_var EASYRSA_REQ_OU			"&& ORGU Skåne Eslöv ## Doe's && Beer's ##"
-set_var EASYRSA_REQ_EMAIL		"&& me@example.net ##"
+set_var EASYRSA_DN				"org"
+set_var EASYRSA_REQ_COUNTRY		"XX"
+set_var EASYRSA_REQ_EMAIL		"\{ set_var \} () ~me@example.net~ #"
 
-export EASYRSA_REQ_OU='EXTERNAL && {}} ORGU {{} $$ ## <\"> <= double-quote => <\"/\"> ##'
+set_var EASYRSA_REQ_PROVINCE	"\{ set_var \} () PROV Skåne Eslöv #  Doe's & Beer's  # ¬!£%^*() #"
+set_var EASYRSA_REQ_CITY		"\{ set_var \} () CITY Skåne Eslöv #  Doe's & Beer's  # -_=+[]/? #"
+set_var EASYRSA_REQ_ORG			"\{ set_var \} () ORGN Skåne Eslöv #  Doe's & Beer's  # .> ,< |~ #"
+set_var EASYRSA_REQ_OU			"\{ set_var \} () ORGU Skåne Eslöv #  Deer's & Boe's  #          #"
+
+# This does not throw unsupported chars warning
+#export EASYRSA_REQ_OU="{ *^export* } () ORGU Skåne Eslöv # \\\"Deer'\$ & Boe'\$\\\" # \$$ $  $\# #"
 
 UTEST_VARS
 }
@@ -1027,7 +1061,7 @@ create_pki ()
 	init
 
 	# Detect Host and disable Edwards curve tests for LibreSSL
-	detect_host
+	#detect_host
 
 
 	#[ -f "$DEPS_DIR/custom-ssl.sh" ] || export CUST_SSL_ENABLE=0

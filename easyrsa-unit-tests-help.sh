@@ -1109,7 +1109,7 @@ run_help_commands ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	ERSA_UTEST_VERSION="2.3.0"
+	ERSA_UTEST_VERSION="2.3.2-help"
 
 	# Options
 	while [ "$1" ]
