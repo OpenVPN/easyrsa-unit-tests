@@ -477,7 +477,7 @@ create_vars ()
 	print ' set_var EASYRSA_REQ_CITY      "TEST ,./<>  ?;:@~  []!%^  *()-=  _+| (23) TEST"'
 	print ' set_var EASYRSA_REQ_ORG       "example.org Skåne & Eslöv"'
 	print ' set_var EASYRSA_REQ_EMAIL     "me@example.net"'
-	print " set_var EASYRSA_REQ_OU        \"TEST esc \{ \} \£ \¬ (4) TEST # Doe's & Beer's #\""
+	print " set_var EASYRSA_REQ_OU        \"TEST esc \{ \} \£ \¬ \$ TEST # Doe's & Beer's #\""
 }
 
 create_mad_vars ()
@@ -502,7 +502,7 @@ set_var EASYRSA_REQ_EMAIL		"\{ set_var \} () ~me@example.net~ #"
 set_var EASYRSA_REQ_PROVINCE	"\{ set_var \} () PROV Skåne Eslöv #  Doe's & Beer's  # ¬!£%^*() #"
 set_var EASYRSA_REQ_CITY		"\{ set_var \} () CITY Skåne Eslöv #  Doe's & Beer's  # -_=+[]/? #"
 set_var EASYRSA_REQ_ORG			"\{ set_var \} () ORGN Skåne Eslöv #  Doe's & Beer's  # .> ,< |~ #"
-set_var EASYRSA_REQ_OU			"\{ set_var \} () ORGU Skåne Eslöv #  Deer's & Boe's  #          #"
+set_var EASYRSA_REQ_OU			"\{ set_var \} () ORGU Skåne Eslöv #  Deer's & Boe's  # \$        #"
 
 # This does not throw unsupported chars warning
 #export EASYRSA_REQ_OU="{ *^export* } () ORGU Skåne Eslöv # \\\"Deer'\$ & Boe'\$\\\" # \$$ $  $\# #"
