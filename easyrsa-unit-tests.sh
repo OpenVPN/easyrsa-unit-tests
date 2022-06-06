@@ -99,7 +99,7 @@ init ()
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-365}"
 	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-529}"
-	export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
+	#export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
 
 	# Not worth this dev effort
 	#BROKEN_PKI="${BROKEN_PKI:-0}"
@@ -484,7 +484,7 @@ create_mad_vars ()
 {
 	cat << "UTEST_VARS"
 
-set_var EASYRSA_FIX_OFFSET 163
+#set_var EASYRSA_FIX_OFFSET 163
 
 # Unsupported characters:
 # `   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
