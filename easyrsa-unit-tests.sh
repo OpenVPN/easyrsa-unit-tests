@@ -99,7 +99,7 @@ init ()
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-365}"
 	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-529}"
-	#export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-163}"
+	export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-162}"
 
 	# Not worth this dev effort
 	#BROKEN_PKI="${BROKEN_PKI:-0}"
@@ -137,8 +137,6 @@ failed ()
 	exit "$ERROR_CODE"
 }
 
-
-
 # Wrapper around printf - clobber print since it's not POSIX anyway
 print() { printf "%s\n" "$1"; }
 
@@ -150,7 +148,6 @@ warn ()
 
 die ()
 {
-
 	print
 	print "FATAL ERROR! Command failed -> ${1:-unknown error}"
 	[ -f "$ACT_OUT" ] && print && print "EasyRSA log:" && cat "$ACT_OUT"
@@ -655,6 +652,7 @@ execute_node ()
 	show_cert
 	renew_cert
 	show_cert
+	status_reports
 	revoke_renewed_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
@@ -886,12 +884,13 @@ gen_crl ()
 
 cat_file ()
 {
-	[ $((ERSA_OUT)) -eq 1 ] || return 0
-	#newline
-	#vverbose "cat $CAT_THIS"
+	newline 2
+	verbose "cat $CAT_THIS"
+	vverbose "cat $CAT_THIS"
 	newline
 	[ -f "$CAT_THIS" ] || die "cat $CAT_THIS"
-	[ $((VVERBOSE)) -eq 1 ] && cat "$CAT_THIS"
+	[ $((ERSA_OUT)) -eq 1 ] && [ $((VVERBOSE)) -eq 1 ] && cat "$CAT_THIS"
+	completed
 	newline
 }
 
@@ -939,8 +938,6 @@ create_pki ()
 	REQ_name="s03"
 	build_full
 
-	status_reports
-
 	REQ_type="serverClient"
 	REQ_name="s04"
 	build_san_full
@@ -979,6 +976,9 @@ create_pki ()
 	sign_req
 	secure_key
 
+	CAT_THIS="$EASYRSA_PKI/index.txt"
+	cat_file
+
 	# goto sub-ca maximilian
 	LOG_INDENT=""
 	move_ca
@@ -1007,6 +1007,9 @@ create_pki ()
 
 		unset LIVE_PKI
 		secure_key
+
+		CAT_THIS="$EASYRSA_PKI/index.txt"
+		cat_file
 
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
