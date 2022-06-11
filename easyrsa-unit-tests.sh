@@ -1084,7 +1084,7 @@ create_pki ()
 		easyrsa_unit_test_version
 
 		newline 2
-		"$ERSA_BIN" version
+		"$ERSA_BIN" show-host
 
 		# Don't use vverbose because it filters off the path,
 		# which is what we need to know
