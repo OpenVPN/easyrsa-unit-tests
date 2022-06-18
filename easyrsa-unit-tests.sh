@@ -481,7 +481,7 @@ create_mad_vars ()
 {
 	cat << "UTEST_VARS"
 
-#set_var EASYRSA_FIX_OFFSET 163
+set_var EASYRSA_FIX_OFFSET 163
 
 # Unsupported characters:
 # `   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
@@ -500,6 +500,7 @@ set_var EASYRSA_REQ_PROVINCE	"\{ set_var \} () PROV Skåne Eslöv #  Doe's & Bee
 set_var EASYRSA_REQ_CITY		"\{ set_var \} () CITY Skåne Eslöv #  Doe's & Beer's  # -_=+[]/? #"
 set_var EASYRSA_REQ_ORG			"\{ set_var \} () ORGN Skåne Eslöv #  Doe's & Beer's  # .> ,< |~ #"
 set_var EASYRSA_REQ_OU			"\{ set_var \} () ORGU Skåne Eslöv #  Deer's & Boe's  # \$        #"
+set_var EASYRSA_REQ_SERIAL		"a-z,A-Z,0-9 -+/=.,?:()"
 
 # This does not throw unsupported chars warning
 #export EASYRSA_REQ_OU="{ *^export* } () ORGU Skåne Eslöv # \\\"Deer'\$ & Boe'\$\\\" # \$$ $  $\# #"
