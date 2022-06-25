@@ -325,6 +325,8 @@ detect_host() {
 		easyrsa_shell="$SHELL"
 
 		# Test the Unit Test SSL Library version,
+echo "SSL config: $OPENSSL_CNF"
+"$EASYRSA_OPENSSL" version
 		val="$("$EASYRSA_OPENSSL" version 2>/dev/null)"
 		case "${val%% *}" in
 			# OpenSSL does not require a safe config-file
@@ -381,12 +383,13 @@ setup ()
 		#[ -f "$FOUND_VARS/vars.example" ] || dir "File missing: $FOUND_VARS/vars.example"
 		#cp "$FOUND_VARS/vars.example" "$WORK_DIR/vars" || die "cp vars.example vars"
 
-		if [ "$LIBRESSL_LIMIT" ]; then
-			create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
-		else
-			create_mad_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
-			#create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
-		fi
+		#if [ "$LIBRESSL_LIMIT" ]; then
+		#	create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+		#else
+		#	create_mad_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+		#	#create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+		#fi
+		create_mad_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
 
 		verbose_update
 		vcompleted "$STEP_NAME"
@@ -743,6 +746,7 @@ build_full ()
 	action
 	verify_cert
 	pkcs_all
+	renew_req
 	secure_key
 	execute_node
 }
@@ -756,8 +760,18 @@ build_san_full ()
 	action
 	verify_cert
 	pkcs_all
+	renew_req
 	secure_key
 	execute_node
+}
+
+renew_req ()
+{
+	newline 1
+	STEP_NAME="$1 renew-req $REQ_name"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$1 renew-req $REQ_name"
+	action
+	secure_key
 }
 
 gen_req ()
