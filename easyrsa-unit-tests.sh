@@ -527,36 +527,36 @@ create_req ()
 	verbose_update
 	cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
 
+	LIVE_PKI=1
 	export EASYRSA_BATCH=1
 	export EASYRSA_REQ_CN="maximilian"
-	LIVE_PKI=1
 
 	build_sub_ca
 	verbose_update
 
 	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && \
 		mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/$EASYRSA_REQ_CN.req"
+	unset EASYRSA_REQ_CN
 
-	export EASYRSA_REQ_CN="specter"
+	REQ_name="specter"
 	gen_req
 	verbose_update
 
-	export EASYRSA_REQ_CN="meltdown"
+	REQ_name="meltdown"
 	gen_req
 	verbose_update
 
-	export EASYRSA_REQ_CN="heartbleed"
+	REQ_name="heartbleed"
 	gen_req
 	verbose_update
 
-	export EASYRSA_REQ_CN="VORACLE"
+	REQ_name="VORACLE"
 	gen_req "--subject-alt-name=DNS:www.example.org,IP:0.0.0.0"
 	verbose_update
 
-	unset LIVE_PKI
-	unset EASYRSA_REQ_CN
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
+	unset LIVE_PKI
 }
 
 restore_req ()
@@ -777,8 +777,8 @@ renew_req ()
 gen_req ()
 {
 	newline 1
-	STEP_NAME="$1 gen-req $REQ_type $EASYRSA_REQ_CN nopass"
-	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$1 gen-req $REQ_type $EASYRSA_REQ_CN"
+	STEP_NAME="$1 gen-req $REQ_type $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$1 gen-req $REQ_type $REQ_name"
 	action
 	secure_key
 }
@@ -940,6 +940,7 @@ create_pki ()
 	export EASYRSA_REQ_CN="penelope"
 	build_ca
 	show_ca
+	unset -v EASYRSA_REQ_CN
 
 	REQ_type="server"
 	REQ_name="s01"
