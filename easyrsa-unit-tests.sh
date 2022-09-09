@@ -746,7 +746,6 @@ build_full ()
 	action
 	verify_cert
 	pkcs_all
-	renew_req
 	secure_key
 	execute_node
 }
@@ -760,18 +759,8 @@ build_san_full ()
 	action
 	verify_cert
 	pkcs_all
-	renew_req
 	secure_key
 	execute_node
-}
-
-renew_req ()
-{
-	newline 1
-	STEP_NAME="$1 renew-req $REQ_name"
-	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$1 renew-req $REQ_name"
-	action
-	secure_key
 }
 
 gen_req ()
