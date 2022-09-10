@@ -691,6 +691,10 @@ execute_node ()
 	show_cert
 	status_reports
 	revoke_renewed_cert
+	if [ "$EASYRSA_REMOTE_CI" ]; then
+		rebuild_pair
+		revoke_renewed_cert
+	fi
 	# This revokes the renewed (2nd) cert
 	revoke_cert
 }
@@ -873,6 +877,19 @@ renew_cert ()
 	# This will probably need an inline option
 	STEP_NAME="renew $REQ_name nopass"
 	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="renew $REQ_name"
+	action
+	verify_cert
+	pkcs_all
+	secure_key
+}
+
+rebuild_pair ()
+{
+	newline 1
+	wait_sec
+	# This will probably need an inline option
+	STEP_NAME="rebuild $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="rebuild $REQ_name"
 	action
 	verify_cert
 	pkcs_all
