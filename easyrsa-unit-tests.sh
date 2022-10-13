@@ -73,13 +73,18 @@ init ()
 	ACT_ERR="$TEMP_DIR/.act.err"
 
 	# Setup the 'easyrsa' executable to use
-	if [ -f "$WORK_DIR/easyrsa" ]; then
-	# Either './easyrsa'
-		ERSA_BIN="$WORK_DIR/easyrsa"
-	else
-	# Or 'easyrsa' in PATH
+		# In PATH
 		ERSA_BIN="easyrsa"
-	fi
+
+		# For '${ROOT_DIR}/easyrsa'
+		if [ -f "$ROOT_DIR/easyrsa" ]; then
+			ERSA_BIN="$ROOT_DIR/easyrsa"
+		fi
+
+		# For '${ROOT_DIR}/easyrsa3/easyrsa'
+		if [ -f "$WORK_DIR/easyrsa" ]; then
+			ERSA_BIN="$WORK_DIR/easyrsa"
+		fi
 
 	TEST_ALGOS="rsa ec ed"
 	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
