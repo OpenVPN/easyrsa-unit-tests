@@ -456,7 +456,9 @@ secure_key ()
 
 cleanup ()
 {
-	print "Unit-test: cleanup"
+	print "
+
+Unit-test: cleanup"
 	if [ -z "$SAVE_PKI" ]; then
 		print "Remove temp dir: $TEMP_DIR"
 		rm -rf "$TEMP_DIR"
@@ -940,6 +942,11 @@ create_pki ()
 	REQ_name="s01"
 	build_full
 
+	if [ "$EASYRSA_WIN" ]; then
+		: # ok - Skip the rest
+	else
+		# Full test
+
 	REQ_type="server"
 	REQ_name="s02"
 	build_san_full
@@ -1021,6 +1028,9 @@ create_pki ()
 		CAT_THIS="$EASYRSA_PKI/index.txt"
 		cat_file
 
+		# END Full Test
+	fi
+
 	unset EASYRSA_BATCH
 	unset EASYRSA_PKI
 	unset LOG_INDENT
@@ -1045,7 +1055,7 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	ERSA_UTEST_VERSION="2.3.2"
+	ERSA_UTEST_VERSION="3.1.2"
 
 	# Options
 	while [ "$1" ]
