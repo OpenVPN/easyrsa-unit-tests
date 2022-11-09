@@ -1127,7 +1127,7 @@ create_pki ()
 		[ "$EASYRSA_USE_PASS" ] && print && print "* Use Passwords!" && print
 		unset NEW_PKI
 		unset STAGE_NAME
-		unset EASYRSA_OPENSSL
+		#unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
