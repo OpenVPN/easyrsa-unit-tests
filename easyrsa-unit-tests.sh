@@ -506,10 +506,10 @@ set_var EASYRSA_DN				"org"
 set_var EASYRSA_REQ_COUNTRY		"XX"
 set_var EASYRSA_REQ_EMAIL		"\{ set_var \} () ~me@example.net~ #"
 
-set_var EASYRSA_REQ_PROVINCE	"\{ set_var \} () PROV Skåne Eslöv #  Doe's & Beer's  # ¬!£%^*() #"
-set_var EASYRSA_REQ_CITY		"\{ set_var \} () CITY Skåne Eslöv #  Doe's & Beer's  # -_=+[]/? #"
-set_var EASYRSA_REQ_ORG			"\{ set_var \} () ORGN Skåne Eslöv #  Doe's & Beer's  # .> ,< |~ #"
-set_var EASYRSA_REQ_OU			"\{ set_var \} () ORGU Skåne Eslöv #  Deer's & Boe's  # \$        #"
+set_var EASYRSA_REQ_PROVINCE	"\{ set_var \} () PROV Skåne Eslöv #  Doe'$ & Beer'$  # ¬!£%^*() #"
+set_var EASYRSA_REQ_CITY		"\{ set_var \} () CITY Skåne Eslöv #  Doe'$ & Beer'$  # -_=+[]/? #"
+set_var EASYRSA_REQ_ORG			"\{ set_var \} () ORGN Skåne Eslöv #  Doe'$ & Beer'$  # .> ,< |~ #"
+set_var EASYRSA_REQ_OU			"\{ set_var \} () ORGU Skåne Eslöv #  Boe'$ & Deer'$  # \$        #"
 set_var EASYRSA_REQ_SERIAL		"a-z,A-Z,0-9 -+/=.,?:()"
 
 # This does not throw unsupported chars warning
