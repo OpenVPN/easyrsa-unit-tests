@@ -1019,10 +1019,6 @@ run_help_commands ()
 	action
 
 	newline 1
-	STEP_NAME="help renewable"
-	action
-
-	newline 1
 	STEP_NAME="help rewind-renew"
 	action
 
