@@ -1069,19 +1069,23 @@ create_pki ()
 		-v)		VERBOSE=1 ;;
 		-vv)	VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-p)		EASYRSA_USE_PASS=1 ;;
+		-i)		export EASYRSA_INLINE=1 ;;
+		-l)		LIBRESSL_LIMIT=1 ;;
 		-t)		WAIT_DELAY=0; VERBOSE=1 ;;
 		-b)		DIE=0; BROKEN_PKI=1; SYS_SSL_ENABLE="${SYS_SSL_ENABLE:-0}";
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-f)		DIE=0; CUST_SSL_ENABLE=1; OPENSSL_ENABLE=1; LIBRESSL_ENABLE=1;
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-x)		export ACT_GLOBAL_OPTS="--x509-alt" ;;
-		-l)		LIBRESSL_LIMIT=1 ;;
 		*)		print "Unknown option: $i"; failed 1 ;;
 		esac
 		shift
 	done
 
 	init
+
+	# Always use inline (Temporarily)
+	export EASYRSA_INLINE=1
 
 	# Detect Host and disable Edwards curve tests for LibreSSL
 	#detect_host
