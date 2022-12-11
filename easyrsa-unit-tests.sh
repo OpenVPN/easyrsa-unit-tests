@@ -71,6 +71,7 @@ init ()
 	ERSA_OUT="${ERSA_OUT:-0}"
 	ACT_OUT="$TEMP_DIR/.act.out"
 	ACT_ERR="$TEMP_DIR/.act.err"
+	#TEST_BUILD_CA_DEFAULT_METHOD=1
 
 	# Setup the 'easyrsa' executable to use
 		# In PATH
@@ -606,7 +607,18 @@ action ()
 	ACT_FILE_NAME="$1"
 	ACT_OPTS="$2"
 
-	if [ "$EASYRSA_USE_PASS" ]; then
+	if [ "$STEP_NAME" = build-ca ]; then
+		if [ "$TEST_BUILD_CA_DEFAULT_METHOD" ]; then
+			unset -v PASSIN_OPT PASSOUT_OPT
+		else
+			if [ "$EASYRSA_USE_PASS" ]; then
+				PASSIN_OPT=--passin=pass:EasyRSA
+				PASSOUT_OPT=--passout=pass:EasyRSA
+			else
+				unset -v PASSIN_OPT PASSOUT_OPT
+			fi
+		fi
+	elif [ "$EASYRSA_USE_PASS" ]; then
 		PASSIN_OPT=--passin=pass:EasyRSA
 		PASSOUT_OPT=--passout=pass:EasyRSA
 	else
@@ -935,6 +947,8 @@ create_pki ()
 
 	export EASYRSA_REQ_CN="penelope"
 	build_ca
+	#echo "Test CA passprase: exit 0"; exit 0
+
 	show_ca
 	unset -v EASYRSA_REQ_CN
 
@@ -1055,7 +1069,7 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	ERSA_UTEST_VERSION="3.1.2"
+	export ERSA_UTEST_VERSION="3.1.2"
 
 	# Options
 	while [ "$1" ]
