@@ -75,7 +75,7 @@ init ()
 
 	# Setup the 'easyrsa' executable to use
 		# In PATH
-		ERSA_BIN="easyrsa"
+		ERSA_BIN="${ERSA_BIN:-easyrsa}"
 
 		# For '${ROOT_DIR}/easyrsa'
 		if [ -f "$ROOT_DIR/easyrsa" ]; then
