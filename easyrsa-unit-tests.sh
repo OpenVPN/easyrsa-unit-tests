@@ -586,6 +586,18 @@ restore_req ()
 	vcompleted "$STEP_NAME"
 }
 
+append_issuer_ca ()
+{
+	rm -f "$EASYRSA_PKI/issued/$REQ_name.crt.temp"
+	{ cat "$EASYRSA_PKI/issued/$REQ_name.crt" \
+		"$EASYRSA_PKI/ca.crt"
+	} > "$EASYRSA_PKI/issued/$REQ_name.crt.temp"
+
+	rm -f "$EASYRSA_PKI/issued/$REQ_name.crt"
+	mv -f "$EASYRSA_PKI/issued/$REQ_name.crt.temp" \
+		"$EASYRSA_PKI/issued/$REQ_name.crt"
+}
+
 move_ca ()
 {
 	newline 3
@@ -1008,6 +1020,8 @@ create_pki ()
 	REQ_name="maximilian"
 	import_req
 	sign_req
+	#issuer_name="penelope"
+	append_issuer_ca
 	secure_key
 
 	CAT_THIS="$EASYRSA_PKI/index.txt"
