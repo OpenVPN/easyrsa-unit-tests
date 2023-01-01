@@ -136,6 +136,8 @@ success ()
 failed ()
 {
 	ERROR_COUNT="$((ERROR_COUNT+1))"
+	[ "$Ignore_Error" ] && return 0
+
 	ERROR_CODE="$1"
 	cleanup || print "cleanup failed!"
 	print
@@ -829,8 +831,9 @@ verify_cert ()
 	newline 1
 	STEP_NAME="verify $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
+	Ignore_Error=1
 	action
-	unset SHOW_CERT_ONLY
+	unset Ignore_Error SHOW_CERT_ONLY
 }
 
 show_cert ()
