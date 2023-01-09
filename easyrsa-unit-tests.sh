@@ -397,7 +397,14 @@ setup ()
 		#	create_mad_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
 		#	#create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
 		#fi
-		create_mad_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
+
+		if [ "$EASYRSA_MAC" ]; then
+			create_vars > "$TEMP_DIR/vars.utest" || \
+				die "create_vars"
+		else
+			create_mad_vars > "$TEMP_DIR/vars.utest" || \
+				die "create_mad_vars"
+		fi
 
 		verbose_update
 		vcompleted "$STEP_NAME"
