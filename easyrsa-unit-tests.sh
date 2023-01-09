@@ -494,7 +494,7 @@ create_vars ()
 	print ' set_var EASYRSA_REQ_CITY      "TEST ,./<>  ?;:@~  []!%^  *()-=  _+| (23) TEST"'
 	print ' set_var EASYRSA_REQ_ORG       "example.org"'
 	print ' set_var EASYRSA_REQ_EMAIL     "me@example.net"'
-	print " set_var EASYRSA_REQ_OU        \"TEST esc \{ \} \£ \¬ \$ TEST # Doe's & Beer's #\""
+	print " set_var EASYRSA_REQ_OU        \"OU # Doe\'\$ & Beer\'\$ #\""
 }
 
 create_mad_vars ()
