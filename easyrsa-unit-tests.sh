@@ -52,22 +52,15 @@ init ()
 	LOG_INDENT_1=" - "
 	LOG_INDENT_2="    - "
 
-	if [ -d "$TEMP_DIR" ]; then
-		if [ -z "$IGNORE_TEMP" ]; then
-			SAVE_PKI=1
-			die "Aborted! Temporary directory exists: $TEMP_DIR"
-		fi
-		rm -rf "$TEMP_DIR" || {
-			SAVE_PKI=1
-			die "Failed to clean Temporary directory: $TEMP_DIR"
-			}
-		mkdir "$TEMP_DIR" || {
-			die "Failed to create Temporary directory: $TEMP_DIR"
-			}
-	fi
+	rm -rf "$TEMP_DIR" || {
+		KEEP_TEMP=1 # Failed to delete here, don't try again
+		die "Failed to clean Temporary directory: $TEMP_DIR"
+		}
+	mkdir "$TEMP_DIR" || {
+		die "Failed to create Temporary directory: $TEMP_DIR"
+		}
 
 	SHOW_CERT="${SHOW_CERT:-0}"
-	#SAVE_PKI="${SAVE_PKI:-0}"
 	ERSA_OUT="${ERSA_OUT:-0}"
 	ACT_OUT="$TEMP_DIR/.act.out"
 	ACT_ERR="$TEMP_DIR/.act.err"
@@ -469,11 +462,11 @@ cleanup ()
 	print "
 
 Unit-test: cleanup"
-	if [ -z "$SAVE_PKI" ]; then
+	if [ -z "$KEEP_TEMP" ]; then
 		print "Remove temp dir: $TEMP_DIR"
 		rm -rf "$TEMP_DIR"
 	else
-		print "Saving temp dir: SAVE_PKI=$SAVE_PKI"
+		print "Saving temp dir: $TEMP_DIR"
 	fi
 	cd ..
 }
