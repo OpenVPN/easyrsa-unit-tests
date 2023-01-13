@@ -494,7 +494,7 @@ create_mad_vars ()
 {
 	cat << "UTEST_VARS"
 
-set_var EASYRSA_FIX_OFFSET 163
+#set_var EASYRSA_FIX_OFFSET 163
 
 # Unsupported characters:
 # `   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
@@ -847,9 +847,10 @@ verify_cert ()
 	newline 1
 	STEP_NAME="verify $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
-	Ignore_Error=1
+	#Ignore_Error=1
 	action
-	unset Ignore_Error SHOW_CERT_ONLY
+	#unset Ignore_Error
+	unset SHOW_CERT_ONLY
 }
 
 show_cert ()
@@ -1133,7 +1134,10 @@ create_pki ()
 	init
 
 	# Always use inline (Temporarily)
-	export EASYRSA_INLINE=1
+	#export EASYRSA_INLINE=1
+
+	# Fix fixed date
+	EASYRSA_FIX_OFFSET=1
 
 	# Detect Host and disable Edwards curve tests for LibreSSL
 	#detect_host
