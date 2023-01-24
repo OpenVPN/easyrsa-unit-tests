@@ -1104,7 +1104,7 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	export ERSA_UTEST_VERSION="3.1.2"
+	export ERSA_UTEST_VERSION="3.1.3"
 
 	# Options
 	while [ "$1" ]
