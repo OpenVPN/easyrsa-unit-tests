@@ -64,7 +64,7 @@ init ()
 	ERSA_OUT="${ERSA_OUT:-0}"
 	ACT_OUT="$TEMP_DIR/.act.out"
 	ACT_ERR="$TEMP_DIR/.act.err"
-	TEST_BUILD_CA_DEFAULT_METHOD=1
+	#TEST_BUILD_CA_DEFAULT_METHOD=1
 
 	# Setup the 'easyrsa' executable to use
 		# In PATH
