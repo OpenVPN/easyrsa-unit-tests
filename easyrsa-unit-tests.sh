@@ -655,14 +655,18 @@ ${ACT_GLOBAL_OPTS:+"${ACT_GLOBAL_OPTS}" }$STEP_NAME${ACT_OPTS+ "$ACT_OPTS"}"
 ***** $ERSA_BIN \
 ${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
 ${ACT_GLOBAL_OPTS+"$ACT_GLOBAL_OPTS" }\
+${EASYRSA_UT_SILENT } \
 ${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
 
-		"$ERSA_BIN" ${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
-			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS} "}\
+		"$ERSA_BIN" \
+			${PASSIN_OPT+"$PASSIN_OPT"}\
+			${PASSOUT_OPT+"$PASSOUT_OPT"}\
+			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS}"}\
+			${EASYRSA_UT_SILENT}\
 			${STEP_NAME} \
-			"$ACT_FILE_NAME" "$ACT_OPTS" \
-			2>"$ACT_ERR" 1>"$ACT_OUT" \
-				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
+				"$ACT_FILE_NAME" "$ACT_OPTS" \
+				2>"$ACT_ERR" 1>"$ACT_OUT" \
+					|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 
 		rm -f "$ACT_ERR" "$ACT_OUT"
 	else
@@ -670,14 +674,17 @@ ${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
 ***** $ERSA_BIN \
 ${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
 ${ACT_GLOBAL_OPTS+"$ACT_GLOBAL_OPTS" }\
+${EASYRSA_UT_SILENT} \
 ${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
 
 		"$ERSA_BIN" \
-			${PASSIN_OPT+"$PASSIN_OPT" }${PASSOUT_OPT+"$PASSOUT_OPT" }\
-			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS} "}\
+			${PASSIN_OPT+"$PASSIN_OPT"}\
+			${PASSOUT_OPT+"$PASSOUT_OPT"}\
+			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS}"}\
+			${EASYRSA_UT_SILENT}\
 			${STEP_NAME} \
-			"$ACT_FILE_NAME" "$ACT_OPTS" \
-				|| die "<<<<< easyrsa <<<<< $STEP_NAME"
+				"$ACT_FILE_NAME" "$ACT_OPTS" \
+					|| die "<<<<< easyrsa <<<<< $STEP_NAME"
 	fi
 	completed
 	newline
@@ -962,6 +969,7 @@ create_pki ()
 		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}" ""
 
 	[ "$EASYRSA_USE_PASS" ] && print "* Use Passwords!" && print
+	[ "$EASYRSA_UT_SILENT" ] && print "* Use Silent!" && print
 
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
 	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
@@ -1117,7 +1125,8 @@ create_pki ()
 		-u|-h|--help)	usage ;;
 		-v)		VERBOSE=1 ;;
 		-vv)	VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
-		-p)		EASYRSA_USE_PASS=1 ;;
+		-p)		export EASYRSA_USE_PASS=1 ;;
+		-s)		EASYRSA_UT_SILENT=--silent ;;
 		-i)		export EASYRSA_INLINE=1 ;;
 		-l)		LIBRESSL_LIMIT=1 ;;
 		-t)		WAIT_DELAY=0; VERBOSE=1 ;;
