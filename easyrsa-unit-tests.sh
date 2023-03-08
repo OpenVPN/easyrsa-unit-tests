@@ -476,7 +476,7 @@ create_vars ()
 	#print ' set_var EASYRSA_FIX_OFFSET 163'
 	print ' set_var EASYRSA_DN "org"'
 	print '# Unsupported characters:'
-	print '# `'
+	print '# (`)'
 	print '# $'
 	print '# "'
 	print '# single-quote'
@@ -497,7 +497,7 @@ create_mad_vars ()
 #set_var EASYRSA_FIX_OFFSET 163
 
 # Unsupported characters:
-# `   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
+# (`)   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
 # "   # double-quote - MUST be double escaped. MUST be exported (Do not use 'set_var')
 #       Example: export EASYRSA_REQ_OU="My \\\"Organisational\\\" Unit"
 # $   # dollar-sign - MUST be escaped, due to set_var()
@@ -1169,6 +1169,7 @@ create_pki ()
 		easyrsa_unit_test_version
 
 		newline 2
+		echo "ERSA_BIN = '$ERSA_BIN'"
 		"$ERSA_BIN" show-host
 
 		# Don't use vverbose because it filters off the path,
@@ -1249,6 +1250,7 @@ create_pki ()
 ######## shut-down
 
 		newline 2
+		echo "ERSA_BIN = '$ERSA_BIN'"
 		"$ERSA_BIN" version
 
 	cleanup

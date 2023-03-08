@@ -456,7 +456,7 @@ create_vars ()
 	#print ' set_var EASYRSA_FIX_OFFSET 163'
 	print ' set_var EASYRSA_DN "org"'
 	print '# Unsupported characters:'
-	print '# `'
+	print '# (`)'
 	print '# $'
 	print '# "'
 	print '# single-quote'
