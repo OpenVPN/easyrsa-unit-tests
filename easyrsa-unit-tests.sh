@@ -492,10 +492,6 @@ create_vars ()
 
 create_mad_vars ()
 {
-	cat << "UTEST_VARS"
-
-#set_var EASYRSA_FIX_OFFSET 163
-
 # Unsupported characters:
 # (`)   # back-tick - CANNOT BE USED - Incompatible with easyrsa_openssl()
 # "   # double-quote - MUST be double escaped. MUST be exported (Do not use 'set_var')
@@ -504,6 +500,11 @@ create_mad_vars ()
 #       Note: Any alpha-numeric character directly following '$' MUST also be escaped
 #       Examples: "\$ foo" (With a space separator) or "\$\foo" (Without a space separator
 # {,} # Curly-brace - MUST be escaped, due to set_var()
+
+	cat << "UTEST_VARS"
+
+#set_var EASYRSA_FIX_OFFSET 163
+
 
 set_var EASYRSA_DN				"org"
 set_var EASYRSA_REQ_COUNTRY		"XX"
@@ -514,9 +515,6 @@ set_var EASYRSA_REQ_CITY		"CITY Skåne Eslöv #  Doe'$ & Beer'$  # -_=+[]/? #"
 set_var EASYRSA_REQ_ORG			"ORGN Skåne Eslöv #  Doe'$ & Beer'$  # .> ,< |~ #"
 set_var EASYRSA_REQ_OU			"ORGU Skåne Eslöv #  Boe'$ & Deer'$  # \$        #"
 set_var EASYRSA_REQ_SERIAL		"a-z,A-Z,0-9 -+/=.,?:()"
-
-# This does not throw unsupported chars warning
-#export EASYRSA_REQ_OU="{ *^export* } () ORGU Skåne Eslöv # \\\"Deer'\$ & Boe'\$\\\" # \$$ $  $\# #"
 
 UTEST_VARS
 }
