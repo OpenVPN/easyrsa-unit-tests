@@ -1144,7 +1144,10 @@ create_pki ()
 	#export EASYRSA_INLINE=1
 
 	# Fix fixed date
-	EASYRSA_FIX_OFFSET=1
+	export EASYRSA_FIX_OFFSET=1
+
+	# --silent-ssl
+	export EASYRSA_SILENT_SSL=1
 
 	# Detect Host and disable Edwards curve tests for LibreSSL
 	#detect_host
