@@ -98,7 +98,7 @@ init ()
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-365}"
 	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-529}"
-	export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-162}"
+	#export EASYRSA_FIX_OFFSET="${EASYRSA_FIX_OFFSET:-162}"
 
 	# Not worth this dev effort
 	#BROKEN_PKI="${BROKEN_PKI:-0}"
@@ -1144,10 +1144,10 @@ create_pki ()
 	#export EASYRSA_INLINE=1
 
 	# Fix fixed date
-	export EASYRSA_FIX_OFFSET=1
+	#export EASYRSA_FIX_OFFSET=1
 
 	# --silent-ssl
-	export EASYRSA_SILENT_SSL=1
+	#export EASYRSA_SILENT_SSL=1
 
 	# Detect Host and disable Edwards curve tests for LibreSSL
 	#detect_host
