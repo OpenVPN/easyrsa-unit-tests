@@ -508,7 +508,10 @@ create_mad_vars ()
 
 set_var EASYRSA_DN				"org"
 set_var EASYRSA_REQ_COUNTRY		"XX"
-set_var EASYRSA_REQ_EMAIL		"# ~me@example.net~ #"
+set_var EASYRSA_REQ_EMAIL     "me@example.net"
+
+# LibreSSL does not like this email:
+#set_var EASYRSA_REQ_EMAIL		"# ~me@example.net~ #"
 
 set_var EASYRSA_REQ_PROVINCE	"PROV Skåne Eslöv #  Doe'$ & Beer'$  # ¬!£%^*() #"
 set_var EASYRSA_REQ_CITY		"CITY Skåne Eslöv #  Doe'$ & Beer'$  # -_=+[]/? #"
