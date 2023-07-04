@@ -56,7 +56,7 @@ init ()
 		KEEP_TEMP=1 # Failed to delete here, don't try again
 		die "Failed to clean Temporary directory: $TEMP_DIR"
 		}
-	mkdir "$TEMP_DIR" || {
+	mkdir -p "$TEMP_DIR" || {
 		die "Failed to create Temporary directory: $TEMP_DIR"
 		}
 
