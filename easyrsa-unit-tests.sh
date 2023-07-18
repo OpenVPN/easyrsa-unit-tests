@@ -391,7 +391,7 @@ setup ()
 		#	#create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
 		#fi
 
-		if [ "$EASYRSA_MAC" ]; then
+		if [ "$LIBRESSL_LIMIT" ] || [ "$EASYRSA_MAC" ]; then
 			create_vars > "$TEMP_DIR/vars.utest" || \
 				die "create_vars"
 		else
@@ -1127,6 +1127,7 @@ create_pki ()
 		-v)		VERBOSE=1 ;;
 		-vv)	VVERBOSE=1; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-p)		export EASYRSA_USE_PASS=1 ;;
+		-k)		export KEEP_TEMP=1 ;;
 		-s)		EASYRSA_UT_SILENT=--silent ;;
 		-i)		export EASYRSA_INLINE=1 ;;
 		-l)		LIBRESSL_LIMIT=1 ;;
