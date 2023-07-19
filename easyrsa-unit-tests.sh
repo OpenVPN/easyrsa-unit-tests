@@ -289,7 +289,9 @@ easyrsa_unit_test_version ()
 	#ERSA_LIB_VERSION="$("$EASYRSA_OPENSSL" version)"
 	#print "EASYRSA_OPENSSL version: $ERSA_LIB_VERSION"
 
-	ssl_version="$("$EASYRSA_OPENSSL" version)"
+	ssl_version="$(
+		OPENSSL_CONF=/dev/null "$EASYRSA_OPENSSL" version
+		)"
 	printf '%s\n' "" "* EASYRSA_OPENSSL:" \
 		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}"
 
@@ -326,9 +328,11 @@ detect_host() {
 		easyrsa_shell="$SHELL"
 
 		# Test the Unit Test SSL Library version,
-echo "SSL config: $OPENSSL_CNF"
-"$EASYRSA_OPENSSL" version
-		val="$("$EASYRSA_OPENSSL" version 2>/dev/null)"
+#echo "SSL config: $OPENSSL_CNF"
+#"$EASYRSA_OPENSSL" version
+		val="$(
+			OPENSSL_CONF=/dev/null "$EASYRSA_OPENSSL" version
+			)"
 		case "${val%% *}" in
 			# OpenSSL does not require a safe config-file
 			OpenSSL)
@@ -965,7 +969,7 @@ create_pki ()
 
 	restore_req || die "restore_req failed"
 
-	ssl_version="$("$EASYRSA_OPENSSL" version)"
+	ssl_version="$(OPENSSL_CONF=/dev/null "$EASYRSA_OPENSSL" version)"
 	printf '%s\n' "" "* EASYRSA_OPENSSL:" \
 		"  $EASYRSA_OPENSSL (env)" "  ${ssl_version}" ""
 
@@ -1198,7 +1202,7 @@ create_pki ()
 		[ "$EASYRSA_USE_PASS" ] && print && print "* Use Passwords!" && print
 		unset NEW_PKI
 		unset STAGE_NAME
-		unset EASYRSA_OPENSSL
+		#unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
@@ -1210,7 +1214,7 @@ create_pki ()
 		export EASYRSA_OPENSSL="$CUST_SSL_LIBB"
 		NEW_PKI="pki-custom-ssl"
 		create_pki
-		unset EASYRSA_OPENSSL
+		#unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
@@ -1222,7 +1226,7 @@ create_pki ()
 		export EASYRSA_OPENSSL="$OSSL_LIBB"
 		NEW_PKI="pki-openssl"
 		create_pki
-		unset EASYRSA_OPENSSL
+		#unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
@@ -1235,7 +1239,7 @@ create_pki ()
 		export EASYRSA_OPENSSL="$LSSL_LIBB"
 		NEW_PKI="pki-libressl"
 		create_pki
-		unset EASYRSA_OPENSSL
+		#unset EASYRSA_OPENSSL
 	else
 		vdisabled "$STAGE_NAME"
 	fi
