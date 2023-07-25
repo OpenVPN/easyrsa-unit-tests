@@ -744,11 +744,20 @@ show_ca ()
 
 pkcs_all() {
 	#PKCS#12
+	if [ -f "${EASYRSA_PKI}/private/${REQ_name}.key" ]
+	then
+		if [ "$EASYRSA_USE_PASS" ]; then
+			pkcs_export p12
+		else
+			pkcs_export p12 nopass
+		fi
+	else
 		if [ "$EASYRSA_USE_PASS" ]; then
 			pkcs_export p12 nokey
 		else
 			pkcs_export p12 nokey nopass
 		fi
+	fi
 
 	# PKCS#7
 	pkcs_export p7 noca
