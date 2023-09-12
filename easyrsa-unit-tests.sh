@@ -1054,6 +1054,8 @@ create_pki ()
 
 	gen_crl
 	show_crl
+	gen_crl
+	show_crl
 
 	unset LIVE_PKI
 	REQ_type="ca"
@@ -1090,6 +1092,8 @@ create_pki ()
 		REQ_name="meltdown"
 		sign_req
 
+		gen_crl
+		show_crl
 		gen_crl
 		show_crl
 
