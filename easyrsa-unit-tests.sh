@@ -402,6 +402,7 @@ setup ()
 			create_mad_vars > "$TEMP_DIR/vars.utest" || \
 				die "create_mad_vars"
 		fi
+		#export EASYRSA_VARS_FILE="$TEMP_DIR/vars"
 
 		verbose_update
 		vcompleted "$STEP_NAME"
@@ -538,9 +539,12 @@ create_req ()
 {
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
 
+	unset -v EASYRSA_VARS_FILE
 	init_pki
 	verbose_update
+
 	cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
+	export EASYRSA_VARS_FILE="$EASYRSA_PKI/vars"
 
 	LIVE_PKI=1
 	export EASYRSA_BATCH=1
@@ -992,8 +996,10 @@ create_pki ()
 	then
 		vverbose "OMITTING init-pki"
 	else
+		unset -v EASYRSA_VARS_FILE
 		init_pki
 		cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
+		export EASYRSA_VARS_FILE="$EASYRSA_PKI/vars"
 	fi
 	export EASYRSA_BATCH=1
 	LIVE_PKI=1
