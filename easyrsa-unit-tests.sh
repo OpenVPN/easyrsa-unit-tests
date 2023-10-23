@@ -808,6 +808,7 @@ build_full ()
 	action
 	verify_cert
 	pkcs_all
+	change_password
 	secure_key
 	execute_node
 }
@@ -844,6 +845,14 @@ sign_req ()
 	pkcs_all
 	secure_key
 	execute_node
+}
+
+change_password ()
+{
+	[ "$EASYRSA_USE_PASS" ] || return 0
+	newline 2
+	STEP_NAME="set-pass $REQ_name"
+	action
 }
 
 import_req ()
