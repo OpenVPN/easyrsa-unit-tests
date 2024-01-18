@@ -513,15 +513,15 @@ create_mad_vars ()
 
 set_var EASYRSA_DN				"org"
 set_var EASYRSA_REQ_COUNTRY		"XX"
-set_var EASYRSA_REQ_EMAIL     "me@example.net"
+set_var EASYRSA_REQ_EMAIL     "tct@example.net"
 
 # LibreSSL does not like this email:
 #set_var EASYRSA_REQ_EMAIL		"# ~me@example.net~ #"
 
-set_var EASYRSA_REQ_PROVINCE	"PROV Skåne Eslöv #  Doe'$ & Beer'$  # ¬!£%^*() #"
-set_var EASYRSA_REQ_CITY		"CITY Skåne Eslöv #  Doe'$ & Beer'$  # -_=+[]/? #"
-set_var EASYRSA_REQ_ORG			"ORGN Skåne Eslöv #  Doe'$ & Beer'$  # .> ,< |~ #"
-set_var EASYRSA_REQ_OU			"ORGU Skåne Eslöv #  Boe'$ & Deer'$  # \$        #"
+set_var EASYRSA_REQ_PROVINCE	"PROV Skåne Eslöv # Doe'$ & Beer'$   # ¬!£%^*() #"
+set_var EASYRSA_REQ_CITY		"CITY esc: a: '\\\$a' | b: '\$b' | c: '$\c' # -_=+[]/? #"
+set_var EASYRSA_REQ_ORG			"ORGN Easy-RSA UT version: $ERSA_UTEST_VERSION      # .> ,< |~ #"
+set_var EASYRSA_REQ_OU			"ORGU Skåne Eslöv # Boe'$ & Deer'$   # $ \$ __   #"
 set_var EASYRSA_REQ_SERIAL		"a-z,A-Z,0-9 -+/=.,?:()"
 
 UTEST_VARS
@@ -1128,7 +1128,7 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	export ERSA_UTEST_VERSION="3.1.3"
+	export ERSA_UTEST_VERSION="3.2.0"
 
 	# Options
 	while [ "$1" ]
