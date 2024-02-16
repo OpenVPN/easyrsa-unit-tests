@@ -705,7 +705,7 @@ execute_node ()
 	show_cert
 	renew_cert
 	show_cert
-	status_reports
+	#status_reports
 	revoke_renewed_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
