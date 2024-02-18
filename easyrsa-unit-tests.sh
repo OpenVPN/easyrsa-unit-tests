@@ -80,6 +80,11 @@ init ()
 			ERSA_BIN="$WORK_DIR/easyrsa"
 		fi
 
+		# For '${ROOT_DIR}/dev/easyrsa-tools.lib'
+		if [ -f "$ROOT_DIR/dev/easyrsa-tools.lib" ]; then
+			export EASYRSA_TOOLS_LIB="$ROOT_DIR/dev/easyrsa-tools.lib"
+		fi
+
 	TEST_ALGOS="rsa ec ed"
 	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
 
@@ -705,7 +710,11 @@ execute_node ()
 	show_cert
 	renew_cert
 	show_cert
-	#status_reports
+	if [ "$EASYRSA_TOOLS_LIB" ]; then
+		status_reports
+	else
+		print "Omitted status reports test!"
+	fi
 	revoke_renewed_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
