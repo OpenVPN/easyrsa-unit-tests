@@ -852,6 +852,21 @@ sign_req ()
 	execute_node
 }
 
+sign_req_copy_ext ()
+{
+	newline 1
+	STEP_NAME="sign-req $REQ_type $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="sign-req $REQ_type $REQ_name"
+	export EASYRSA_CP_EXT=1
+	action
+	unset -v EASYRSA_CP_EXT
+	verify_cert
+	pkcs_all
+	secure_key
+	execute_node
+}
+
+
 change_password ()
 {
 	[ "$EASYRSA_USE_PASS" ] || return 0
@@ -1042,7 +1057,7 @@ create_pki ()
 	REQ_type="server"
 	REQ_name="specter"
 	import_req
-	sign_req
+	sign_req_copy_ext
 
 	REQ_type="serverClient"
 	REQ_name="heartbleed"
