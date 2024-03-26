@@ -87,6 +87,7 @@ init ()
 
 	TEST_ALGOS="rsa ec ed"
 	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
+	[ "$EASYRSA_WIN" ] && TEST_ALGOS="rsa"
 
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
