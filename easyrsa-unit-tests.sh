@@ -1033,7 +1033,7 @@ create_pki ()
 	REQ_name="s01"
 	build_full
 
-	if [ "$EASYRSA_WIN" ]; then
+	if [ "$EASYRSA_WIN" ] && [ "$EASYRSA_WIN_QUICK" ]; then
 		: # ok - Skip the rest
 	else
 		# Full test
