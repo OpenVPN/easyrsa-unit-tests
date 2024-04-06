@@ -710,6 +710,7 @@ execute_node ()
 	[ $LIVE_PKI ] || return 0
 	show_cert
 	#renew_cert
+	simulate_renew
 	show_cert
 	if [ "$EASYRSA_TOOLS_LIB" ]; then
 		status_reports
@@ -717,6 +718,7 @@ execute_node ()
 		print "Omitted status reports test!"
 	fi
 	#revoke_renewed_cert
+	revoke_expired_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
 }
@@ -850,7 +852,7 @@ sign_req ()
 	verify_cert
 	pkcs_all
 	secure_key
-	execute_node
+	#execute_node
 }
 
 sign_req_copy_ext ()
@@ -954,6 +956,36 @@ revoke_cert ()
 	newline 1
 	STEP_NAME="revoke $REQ_name cessationOfOperation"
 	CAT_THIS="$EASYRSA_PKI/index.txt"
+	action
+	secure_key
+}
+
+simulate_renew ()
+{
+	newline 1
+	wait_sec
+	expire_cert
+	sign_req
+
+	#verify_cert
+	#pkcs_all
+	#secure_key
+}
+
+expire_cert ()
+{
+	newline 1
+	wait_sec
+	STEP_NAME="expire $REQ_name"
+	action
+}
+
+revoke_expired_cert ()
+{
+	newline 1
+	wait_sec
+	# This will probably need an inline option
+	STEP_NAME="revoke-expired $REQ_name superseded"
 	action
 	secure_key
 }
