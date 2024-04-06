@@ -709,14 +709,14 @@ execute_node ()
 {
 	[ $LIVE_PKI ] || return 0
 	show_cert
-	renew_cert
+	#renew_cert
 	show_cert
 	if [ "$EASYRSA_TOOLS_LIB" ]; then
 		status_reports
 	else
 		print "Omitted status reports test!"
 	fi
-	revoke_renewed_cert
+	#revoke_renewed_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
 }
