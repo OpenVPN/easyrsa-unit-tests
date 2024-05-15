@@ -654,6 +654,11 @@ action ()
 		unset -v PASSIN_OPT PASSOUT_OPT
 	fi
 
+	if [ "$KEEP_TEMP" ]; then
+		step_num="$(( step_num + 1 ))"
+		ACT_GLOBAL_KEEP_TEMP="--keep-tmp=$EASYRSA_ALGO-$step_num"
+	fi
+
 	verbose "$EASYRSA_ALGO: \
 ${ACT_GLOBAL_OPTS:+"${ACT_GLOBAL_OPTS}" }$STEP_NAME${ACT_OPTS+ "$ACT_OPTS"}"
 	vverbose "$EASYRSA_ALGO: \
@@ -676,7 +681,8 @@ ${STEP_NAME}${ACT_FILE_NAME+ "$ACT_FILE_NAME"}${ACT_OPTS+ "$ACT_OPTS"}"
 		"$ERSA_BIN" \
 			${PASSIN_OPT+"$PASSIN_OPT"}\
 			${PASSOUT_OPT+"$PASSOUT_OPT"}\
-			${ACT_GLOBAL_OPTS+"${ACT_GLOBAL_OPTS}"}\
+			${ACT_GLOBAL_OPTS}\
+			${ACT_GLOBAL_KEEP_TEMP}\
 			${EASYRSA_UT_SILENT}\
 			${STEP_NAME} \
 				"$ACT_FILE_NAME" "$ACT_OPTS" \
@@ -1226,7 +1232,6 @@ create_pki ()
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
 		-f)		DIE=0; CUST_SSL_ENABLE=1; OPENSSL_ENABLE=1; LIBRESSL_ENABLE=1;
 				VVERBOSE="${VVERBOSE:-1}"; ERSA_OUT="${ERSA_OUT:-1}" ;;
-		-x)		export ACT_GLOBAL_OPTS="--x509-alt" ;;
 		*)		print "Unknown option: $i"; failed 1 ;;
 		esac
 		shift
@@ -1280,6 +1285,7 @@ create_pki ()
 			STAGE_NAME="System ssl $EASYRSA_ALGO"
 			NEW_PKI="pki-sys ssl-$EASYRSA_ALGO"
 			printf '%s\n' ">>>>> >>>>> Begin easyrsa $EASYRSA_ALGO tests"
+			step_num=
 			create_pki
 			printf '%s\n' "<<<<< <<<<< End easyrsa $EASYRSA_ALGO tests"
 			unset EASYRSA_ALGO EASYRSA_CURVE
