@@ -896,8 +896,10 @@ import_req ()
 	export EASYRSA_BATCH=1
 }
 
+# shellcheck disable=SC2317 # Command appears to be unreachable.
 show_req ()
 {
+	# UNUSED
 	newline 1
 	STEP_NAME="show-req $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
@@ -934,8 +936,10 @@ show_crl ()
 	unset SHOW_CERT_ONLY
 }
 
+# shellcheck disable=SC2317 # Command appears to be unreachable.
 renew_cert ()
 {
+	# OBSOLETE
 	newline 1
 	wait_sec
 	# This will probably need an inline option
@@ -947,8 +951,10 @@ renew_cert ()
 	secure_key
 }
 
+# shellcheck disable=SC2317 # Command appears to be unreachable.
 revoke_renewed_cert ()
 {
+	# OBSOLOETE
 	newline 1
 	wait_sec
 	# This will probably need an inline option
