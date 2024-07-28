@@ -715,15 +715,16 @@ execute_node ()
 {
 	[ $LIVE_PKI ] || return 0
 	show_cert
-	#renew_cert
 	simulate_renew
 	show_cert
 	if [ "$EASYRSA_TOOLS_LIB" ]; then
 		status_reports
+		renew_cert
+		revoke_renewed_cert
 	else
 		print "Omitted status reports test!"
+		print "Omitted renew and revoke-renewed test!"
 	fi
-	#revoke_renewed_cert
 	revoke_expired_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
@@ -1215,7 +1216,7 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	export ERSA_UTEST_VERSION="3.2.0"
+	export ERSA_UTEST_VERSION="3.2.1"
 
 	# Options
 	while [ "$1" ]
