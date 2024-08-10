@@ -911,7 +911,7 @@ show_req ()
 verify_cert ()
 {
 	newline 1
-	STEP_NAME="verify $REQ_name"
+	STEP_NAME="verify-cert $REQ_name"
 	[ $((SHOW_CERT)) -eq 1 ] && SHOW_CERT_ONLY=1
 	#Ignore_Error=1
 	action
