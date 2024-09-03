@@ -818,8 +818,8 @@ pkcs_export ()
 build_full ()
 {
 	newline 2
-	STEP_NAME="build-$REQ_type-full $REQ_name nopass inline"
-	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-$REQ_type-full $REQ_name inline"
+	STEP_NAME="build-$REQ_type-full $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="build-$REQ_type-full $REQ_name"
 	action
 	verify_cert
 	pkcs_all
@@ -832,8 +832,8 @@ build_san_full ()
 {
 	newline 2
 	user_SAN="--subject-alt-name=DNS:primary.example.net,DNS:alternate.example.net,IP:0.0.0.0,IP:255.255.255.255"
-	STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name nopass inline"
-	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name inline"
+	STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name nopass"
+	[ "$EASYRSA_USE_PASS" ] && STEP_NAME="$user_SAN build-$REQ_type-full $REQ_name"
 	action
 	verify_cert
 	pkcs_all
@@ -958,7 +958,6 @@ revoke_renewed_cert ()
 	# OBSOLOETE
 	newline 1
 	wait_sec
-	# This will probably need an inline option
 	STEP_NAME="revoke-renewed $REQ_name superseded"
 	action
 	secure_key
@@ -997,7 +996,6 @@ revoke_expired_cert ()
 {
 	newline 1
 	wait_sec
-	# This will probably need an inline option
 	STEP_NAME="revoke-expired $REQ_name superseded"
 	action
 	secure_key
