@@ -342,8 +342,10 @@ detect_host() {
 		case "${val%% *}" in
 			# OpenSSL does not require a safe config-file
 			OpenSSL)
-				#unset -v require_safe_ssl_conf
-				:
+				case "${val}" in
+					'OpenSSL 1.1.0'*)
+						TEST_ALGOS="rsa ec"
+				esac
 			;;
 			LibreSSL)
 				#require_safe_ssl_conf=1
