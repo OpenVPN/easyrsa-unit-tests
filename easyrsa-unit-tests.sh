@@ -81,8 +81,8 @@ init ()
 		fi
 
 		# For '${ROOT_DIR}/dev/easyrsa-tools.lib'
-		if [ -f "$ROOT_DIR/dev/easyrsa-tools.lib" ]; then
-			export EASYRSA_TOOLS_LIB="$ROOT_DIR/dev/easyrsa-tools.lib"
+		if [ -f "$WORK_DIR/easyrsa-tools.lib" ]; then
+			export EASYRSA_TOOLS_LIB="$WORK_DIR/easyrsa-tools.lib"
 		fi
 
 	TEST_ALGOS="rsa ec ed"
