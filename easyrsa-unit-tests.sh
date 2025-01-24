@@ -719,14 +719,9 @@ execute_node ()
 	show_cert
 	simulate_renew
 	show_cert
-	if [ "$EASYRSA_TOOLS_LIB" ]; then
-		status_reports
-		renew_cert
-		revoke_renewed_cert
-	else
-		print "Omitted status reports test!"
-		print "Omitted renew and revoke-renewed test!"
-	fi
+	status_reports
+	renew_cert
+	revoke_renewed_cert
 	revoke_expired_cert
 	# This revokes the renewed (2nd) cert
 	revoke_cert
