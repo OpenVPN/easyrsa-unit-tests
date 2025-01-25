@@ -100,7 +100,7 @@ init ()
 	# Use any custom command line SSL lib for this
 	OSSL_LIBB="${OSSL_LIBB:-"$SYS_SSL_LIBB"}"
 
-	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-1024}"
+	export EASYRSA_KEY_SIZE="${EASYRSA_KEY_SIZE:-2048}"
 	export EASYRSA_CA_EXPIRE="${EASYRSA_CA_EXPIRE:-1}"
 	export EASYRSA_CERT_EXPIRE="${EASYRSA_CERT_EXPIRE:-365}"
 	export EASYRSA_CERT_RENEW="${EASYRSA_CERT_RENEW:-529}"
@@ -1211,7 +1211,7 @@ create_pki ()
 	trap "failed 6" 6
 	trap "failed 15" 15
 
-	export ERSA_UTEST_VERSION="3.2.1"
+	export ERSA_UTEST_VERSION="3.2.2"
 
 	# Options
 	while [ "$1" ]
