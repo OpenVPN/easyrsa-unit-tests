@@ -1061,6 +1061,13 @@ create_pki ()
 	[ "$EASYRSA_USE_PASS" ] && print "* Use Passwords!" && print
 	[ "$EASYRSA_UT_SILENT" ] && print "* Use Silent!" && print
 
+	# Enable global options
+	export EASYRSA_BC_CRIT=1
+	export EASYRSA_KU_CRIT=1
+	export EASYRSA_EKU_CRIT=1
+	export EASYRSA_SAN_CRIT='critical,'
+	export EASYRSA_AUTO_SAN=1
+
 	export EASYRSA_PKI="$TEMP_DIR/$NEW_PKI"
 	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
 
