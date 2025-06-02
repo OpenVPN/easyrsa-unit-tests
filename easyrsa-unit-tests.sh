@@ -1207,6 +1207,13 @@ create_pki ()
 
 ######################################
 
+
+	if git log -1 | grep ChangeLog; then
+		return
+	else
+		: # Let's Roll, 'git' may not be available
+	fi
+
 	# This is badly copied from easyrsa and not fixed, yet..
 	# Register cleanup on EXIT
 	#trap "exited 0" 0
