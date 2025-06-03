@@ -1101,80 +1101,40 @@ create_pki ()
 	else
 		# Full test
 
-	REQ_type="server"
-	REQ_name="s02"
-	build_san_full
+		REQ_type="server"
+		REQ_name="s02"
+		build_san_full
 
-	REQ_type="serverClient"
-	REQ_name="s03"
-	build_full
+		REQ_type="serverClient"
+		REQ_name="s03"
+		build_full
 
-	REQ_type="serverClient"
-	REQ_name="s04"
-	build_san_full
+		REQ_type="serverClient"
+		REQ_name="s04"
+		build_san_full
 
-	REQ_type="client"
-	REQ_name="c01"
-	build_full
-
-	REQ_type="server"
-	REQ_name="specter"
-	import_req
-	sign_req_copy_ext
-
-	REQ_type="serverClient"
-	REQ_name="heartbleed"
-	import_req
-	sign_req
-
-	REQ_type="serverClient"
-	REQ_name="VORACLE"
-	import_req
-	sign_req
-
-	REQ_type="client"
-	REQ_name="meltdown"
-	import_req
-	sign_req
-
-	gen_crl
-	show_crl
-	gen_crl
-	show_crl
-
-	unset LIVE_PKI
-	REQ_type="ca"
-	REQ_name="maximilian"
-	import_req
-	sign_req
-	#issuer_name="penelope"
-	append_issuer_ca
-	secure_key
-
-	CAT_THIS="$EASYRSA_PKI/index.txt"
-	cat_file
-
-	# goto sub-ca maximilian
-	LOG_INDENT=""
-	move_ca
-	LOG_INDENT="$LOG_INDENT_2"
-		LIVE_PKI=1
-		show_ca
+		REQ_type="client"
+		REQ_name="c01"
+		build_full
 
 		REQ_type="server"
 		REQ_name="specter"
-		sign_req
+		import_req
+		sign_req_copy_ext
 
 		REQ_type="serverClient"
 		REQ_name="heartbleed"
+		import_req
 		sign_req
 
 		REQ_type="serverClient"
 		REQ_name="VORACLE"
+		import_req
 		sign_req
 
 		REQ_type="client"
 		REQ_name="meltdown"
+		import_req
 		sign_req
 
 		gen_crl
@@ -1183,10 +1143,50 @@ create_pki ()
 		show_crl
 
 		unset LIVE_PKI
+		REQ_type="ca"
+		REQ_name="maximilian"
+		import_req
+		sign_req
+		#issuer_name="penelope"
+		append_issuer_ca
 		secure_key
 
 		CAT_THIS="$EASYRSA_PKI/index.txt"
 		cat_file
+
+		# goto sub-ca maximilian
+		LOG_INDENT=""
+		move_ca
+		LOG_INDENT="$LOG_INDENT_2"
+			LIVE_PKI=1
+			show_ca
+
+			REQ_type="server"
+			REQ_name="specter"
+			sign_req
+
+			REQ_type="serverClient"
+			REQ_name="heartbleed"
+			sign_req
+
+			REQ_type="serverClient"
+			REQ_name="VORACLE"
+			sign_req
+
+			REQ_type="client"
+			REQ_name="meltdown"
+			sign_req
+
+			gen_crl
+			show_crl
+			gen_crl
+			show_crl
+
+			unset LIVE_PKI
+			secure_key
+
+			CAT_THIS="$EASYRSA_PKI/index.txt"
+			cat_file
 
 	fi
 
