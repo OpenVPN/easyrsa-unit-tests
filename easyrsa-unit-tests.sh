@@ -1034,9 +1034,6 @@ cat_file ()
 
 create_self_sign ()
 {
-	EASYRSA_ALGO=ec
-	EASYRSA_CURVE=secp384r1
-
 	newline 2
 	STEP_NAME="self-sign-server sss1"
 	[ "$EASYRSA_USE_PASS" ] || STEP_NAME="self-sign-server sss1 nopass"
@@ -1190,6 +1187,9 @@ create_pki ()
 
 	fi
 
+	export EASYRSA_PKI="$TEMP_DIR/sel-sign"
+	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
+	init_pki
 	create_self_sign
 
 	# END Full Test
