@@ -1020,6 +1020,12 @@ gen_crl ()
 	cat_file
 }
 
+gen_tls_key()
+{
+	newline 2
+	STEP_NAME="gen-tls-crypt-key"
+	action
+}
 cat_file ()
 {
 	newline 2
@@ -1088,6 +1094,8 @@ create_pki ()
 
 	show_ca
 	unset -v EASYRSA_REQ_CN
+
+	gen_tls_key
 
 	REQ_type="server"
 	REQ_name="s01"
