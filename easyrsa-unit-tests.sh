@@ -1095,7 +1095,7 @@ create_pki ()
 	show_ca
 	unset -v EASYRSA_REQ_CN
 
-	gen_tls_key
+	#gen_tls_key
 
 	REQ_type="server"
 	REQ_name="s01"
