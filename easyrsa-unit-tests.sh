@@ -45,7 +45,7 @@ init ()
 	DIE="${DIE:-1}"
 	ROOT_DIR="$PWD"
 	WORK_DIR="${ROOT_DIR}/easyrsa3"
-	TEMP_DIR="${WORK_DIR}/unit tests"
+	TEMP_DIR="${WORK_DIR}/unit_tests"
 	S_ERRORS=0
 	T_ERRORS=0
 	WAIT_DELAY="${WAIT_DELAY:-0}"
@@ -403,7 +403,10 @@ setup ()
 		#	#create_vars > "$TEMP_DIR/vars.utest" || die "create_vars"
 		#fi
 
-		if [ "$LIBRESSL_LIMIT" ] || [ "$EASYRSA_MAC" ]; then
+		if [ "$LIBRESSL_LIMIT" ] || \
+			[ "$EASYRSA_MAC" ] || \
+			[ "$EASYRSA_VARS" ]
+		then
 			create_vars > "$TEMP_DIR/vars.utest" || \
 				die "create_vars"
 		else
@@ -563,7 +566,7 @@ create_req ()
 
 	[ -f "$EASYRSA_PKI/reqs/ca.req" ] && \
 		mv "$EASYRSA_PKI/reqs/ca.req" "$EASYRSA_PKI/reqs/$EASYRSA_REQ_CN.req"
-	unset EASYRSA_REQ_CN
+	unset -v EASYRSA_REQ_CN
 
 	REQ_name="specter"
 	gen_req
@@ -1303,7 +1306,7 @@ create_pki ()
 
 		# Don't use vverbose because it filters off the path,
 		# which is what we need to know
-		vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
+		VVERBOSE=1 vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
 
 		# Setup requests with same SSL lib
 		setup
