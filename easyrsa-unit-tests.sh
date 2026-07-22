@@ -325,8 +325,6 @@ detect_host() {
 		if [ "${EXEPATH}" ]; then
 			easyrsa_shell="$SHELL (Git)"
 			easyrsa_win_git_bash="${EXEPATH}"
-			# If found then set openssl NOW!
-			[ -e /usr/bin/openssl ] && set_var EASYRSA_OPENSSL /usr/bin/openssl
 		fi
 	else
 		easyrsa_host_os=nix
@@ -405,7 +403,7 @@ setup ()
 
 		if [ "$LIBRESSL_LIMIT" ] || \
 			[ "$EASYRSA_MAC" ] || \
-			[ "$EASYRSA_VARS" ]
+			[ "$EASYRSA_SIMPLE_VARS" ]
 		then
 			create_vars > "$TEMP_DIR/vars.utest" || \
 				die "create_vars"
@@ -1271,6 +1269,13 @@ create_pki ()
 
 	init
 
+	StartDate="$(date)"
+
+	# No UTF8 in vars - For git bash 4win
+	if [ "$SHELL" = /usr/bin/bash ]; then
+		EASYRSA_SIMPLE_VARS=1
+	fi
+
 	# Always use inline (Temporarily)
 	#export EASYRSA_INLINE=1
 
@@ -1388,7 +1393,8 @@ create_pki ()
 
 	cleanup
 
-notice "Completed $(date) (Total errors: $T_ERRORS)"
+notice "Started:   $StartDate"
+notice "Completed: $(date) (Total errors: $T_ERRORS)"
 vcompleted "Completed $(date) (Total errors: $T_ERRORS)"
 
 success 0
