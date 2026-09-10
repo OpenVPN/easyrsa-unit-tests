@@ -88,7 +88,12 @@ init ()
 	TEST_ALGOS="rsa ec ed"
 	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
 	[ "$EASYRSA_WIN" ] && TEST_ALGOS="rsa"
-	"$ERSA_BIN" pqc-help && TEST_ALGOS="pqc rsa ec ed"
+	if "$ERSA_BIN" pqc-set-algo Ml-DSA-65; then
+		TEST_ALGOS="pqc rsa ec ed"
+		print "===[  PQC added to TEST_ALGOS: '$TEST_ALGOS'  ]==="
+	else
+		print "===[  PQC UNAVAILABLE  ]==="
+	fi
 
 	CUSTOM_VARS="${CUSTOM_VARS:-1}"
 	UNSIGNED_PKI="${UNSIGNED_PKI:-1}"
