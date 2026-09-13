@@ -89,7 +89,7 @@ init ()
 	[ "$LIBRESSL_LIMIT" ] && TEST_ALGOS="rsa ec"
 	[ "$EASYRSA_WIN" ] && TEST_ALGOS="rsa"
 	if "$ERSA_BIN" pqc-set-algo Ml-DSA-65; then
-		TEST_ALGOS="pqc rsa ec ed"
+		TEST_ALGOS="pqc $TEST_ALGOS"
 		print "===[  PQC added to TEST_ALGOS: '$TEST_ALGOS'  ]==="
 	else
 		print "===[  PQC UNAVAILABLE  ]==="
@@ -613,8 +613,10 @@ restore_req ()
 append_issuer_ca ()
 {
 	rm -f "$EASYRSA_PKI/issued/$REQ_name.crt.temp"
-	{ cat "$EASYRSA_PKI/issued/$REQ_name.crt" \
-		"$EASYRSA_PKI/ca.crt"
+	{
+		cat "$EASYRSA_PKI/issued/$REQ_name.crt"
+		print "${NL}# ISSUER CERTIFICATE${NL}"
+		cat "$EASYRSA_PKI/ca.crt"
 	} > "$EASYRSA_PKI/issued/$REQ_name.crt.temp"
 
 	rm -f "$EASYRSA_PKI/issued/$REQ_name.crt"
@@ -1108,9 +1110,13 @@ create_pki ()
 	REQ_name="s01"
 	build_full
 
-	if [ "$EASYRSA_WIN" ] && [ "$EASYRSA_WIN_QUICK" ]; then
+	# Note: MKsh breaks when `if foo || bar && baz`
+	if [ "$EASYRSA_WIN" ] && [ "$EASYRSA_WIN_QUICK" ] || \
+		[ "$EASYRSA_NIX_QUICK" ]
+	then
 		: # ok - Skip the rest
 	else
+
 		# Full test
 
 		REQ_type="server"
@@ -1153,6 +1159,8 @@ create_pki ()
 		show_crl
 		gen_crl
 		show_crl
+
+	fi
 
 		unset LIVE_PKI
 		REQ_type="ca"
@@ -1199,8 +1207,6 @@ create_pki ()
 
 			CAT_THIS="$EASYRSA_PKI/index.txt"
 			cat_file
-
-	fi
 
 	export EASYRSA_PKI="$TEMP_DIR/self-sign"
 	vvverbose "* EASYRSA_PKI: $EASYRSA_PKI"
