@@ -1092,6 +1092,7 @@ create_pki ()
 		cp "$TEMP_DIR/vars.utest" "$EASYRSA_PKI/vars" || die "New vars"
 		export EASYRSA_VARS_FILE="$EASYRSA_PKI/vars"
 	fi
+
 	export EASYRSA_BATCH=1
 	LIVE_PKI=1
 
@@ -1310,7 +1311,6 @@ create_pki ()
 	#[ -f "$DEPS_DIR/libressl.sh" ] || export LIBRESSL_ENABLE=0
 	#[ $((LIBRESSL_ENABLE)) -eq 1 ] && "$DEPS_DIR/libressl.sh"
 
-
 	if [ $((SYS_SSL_ENABLE)) -eq 1 ]
 	then
 		#export EASYRSA_OPENSSL="${EASYRSA_OPENSSL:-"$SYS_SSL_LIBB"}"
@@ -1323,7 +1323,8 @@ create_pki ()
 
 		# Don't use vverbose because it filters off the path,
 		# which is what we need to know
-		VVERBOSE=1 vvverbose "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
+		#VVERBOSE=1
+		print "EASYRSA_OPENSSL: ${EASYRSA_OPENSSL}"
 
 		# Setup requests with same SSL lib
 		setup
